@@ -333,6 +333,19 @@ public class DragonManager {
             return;
         }
 
+        // A dragon spawned outside a DragonBattle starts in HOVER, which is
+        // literally "stay put": it hangs motionless until something knocks it
+        // out of that phase, such as taking a hit. Players arriving at a
+        // scheduled event would find a frozen boss, and an event where nobody
+        // throws the first punch could time out without a fight. CIRCLING is
+        // the phase the vanilla battle uses to make the dragon fly and hunt.
+        //
+        // Adopting the world's DragonBattle instead is not an option: there is
+        // one per End world, it is obtained rather than created, and it exposes
+        // no way to hand it a dragon we spawned — its initiateRespawn() summons
+        // its own vanilla dragon, without our health, name or event tag.
+        dragon.setPhase(EnderDragon.Phase.CIRCLING);
+
         activeDragonUUID = dragon.getUniqueId();
         eventActive = true;
         // Re-arm the payout guard for this new event.
