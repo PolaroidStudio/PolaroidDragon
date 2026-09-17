@@ -16,6 +16,7 @@ import studio.polaroid.polaroiddragon.manager.MessageManager;
 import studio.polaroid.polaroiddragon.manager.PendingRewardManager;
 import studio.polaroid.polaroiddragon.manager.StatsManager;
 import studio.polaroid.polaroiddragon.placeholder.DragonPlaceholder;
+import studio.polaroid.polaroiddragon.util.CompatibilityCheck;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -29,6 +30,15 @@ public class PolaroidDragon extends JavaPlugin {
 
     @Override
     public void onEnable() {
+        // First, before any manager, listener, database or task exists. A
+        // platform check that runs after construction would have to unwind that
+        // work, and the failures it guards against surface during exactly that
+        // construction.
+        if (!checkPlatform()) {
+            getServer().getPluginManager().disablePlugin(this);
+            return;
+        }
+
         instance = this;
         saveDefaultConfig();
         messageManager = new MessageManager(this);
@@ -82,6 +92,41 @@ public class PolaroidDragon extends JavaPlugin {
         }
 
         getLogger().info("PolaroidDragon enabled.");
+    }
+
+    /**
+     * Verifies Java and Minecraft meet the plugin's minimums.
+     *
+     * <p>Returns {@code true} to continue starting up, which includes every case
+     * where the platform could not be identified — see
+     * {@link CompatibilityCheck} for why that is deliberate. Only a version that
+     * was read successfully and is genuinely too old stops the plugin.
+     */
+    private boolean checkPlatform() {
+        CompatibilityCheck.Result java = CompatibilityCheck.checkJava();
+        if (!java.supported()) {
+            getLogger().severe("PolaroidDragon cannot start: " + java.reason() + ".");
+            getLogger().severe("Install a Java " + CompatibilityCheck.MINIMUM_JAVA
+                    + " runtime and restart the server.");
+            return false;
+        }
+
+        String minecraftVersion = CompatibilityCheck.detectMinecraftVersion();
+        if (minecraftVersion == null) {
+            getLogger().warning("Could not determine the Minecraft version; "
+                    + "starting anyway. Paper 1.21 or newer is required.");
+            return true;
+        }
+
+        CompatibilityCheck.Result minecraft = CompatibilityCheck.checkMinecraft(minecraftVersion);
+        if (!minecraft.supported()) {
+            getLogger().severe("PolaroidDragon cannot start: " + minecraft.reason() + ".");
+            getLogger().severe("Update the server to Paper 1.21 or newer, or install a "
+                    + "PolaroidDragon build that targets your version.");
+            return false;
+        }
+
+        return true;
     }
 
     @Override
