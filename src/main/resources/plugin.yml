@@ -1,0 +1,37 @@
+name: PolaroidDragon
+version: 1.0.0
+main: studio.polaroid.polaroiddragon.PolaroidDragon
+api-version: '1.21'
+authors: [ PolaroidStudio ]
+description: Ancestral Dragon event for Polaroid servers
+softdepend:
+  - PlaceholderAPI
+  - Vault
+
+commands:
+  polaroiddragon:
+    description: Main PolaroidDragon command
+    aliases: [ pdragon ]
+    usage: /polaroiddragon <start|spawn|stop|top|info|placeholders|reload>
+
+permissions:
+  polaroiddragon.admin:
+    description: Full access to PolaroidDragon admin commands
+    default: op
+    children:
+      polaroiddragon.admin.start: true
+      polaroiddragon.admin.spawn: true
+      polaroiddragon.admin.stop: true
+      polaroiddragon.admin.reload: true
+  polaroiddragon.admin.start:
+    description: Allows starting the event countdown
+    default: false
+  polaroiddragon.admin.spawn:
+    description: Allows spawning the dragon directly
+    default: false
+  polaroiddragon.admin.stop:
+    description: Allows stopping the running event
+    default: false
+  polaroiddragon.admin.reload:
+    description: Allows reloading the plugin configuration
+    default: false

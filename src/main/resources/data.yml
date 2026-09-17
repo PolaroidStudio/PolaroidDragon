@@ -1,0 +1,30 @@
+# ══════════════════════════════════════════════
+#        HildaDragon — Almacenamiento de datos
+# ══════════════════════════════════════════════
+#
+# Controla DÓNDE se guardan las estadísticas del Salón de la Fama
+# (daño total y eventos participados por jugador).
+#
+# IMPORTANTE: cambiar este archivo requiere REINICIAR el servidor.
+#   El comando /hildadragon reload NO reabre la base de datos.
+#
+# Tipos de almacenamiento disponibles:
+#   sqlite  → archivo local (por defecto, sin configuración extra)
+#   mysql   → base de datos MySQL/MariaDB externa
+#
+# Si existe un stats.yml antiguo, sus datos se importan automáticamente
+# una sola vez al arrancar y el archivo se renombra a stats.yml.bak.
+# ══════════════════════════════════════════════
+
+storage: sqlite   # sqlite | mysql
+
+sqlite:
+  file: "data.db"
+
+mysql:
+  host: "localhost"
+  port: 3306
+  database: "minecraft"
+  username: "root"
+  password: ""
+  params: "useSSL=false&serverTimezone=UTC"

@@ -1,0 +1,66 @@
+# ══════════════════════════════════════════════
+#        HildaDragon — Webhook de Discord
+# ══════════════════════════════════════════════
+#
+# Anuncia el spawn y la muerte del Dragón Ancestral en un canal de Discord.
+#
+# Cómo obtener la URL del webhook:
+#  1. En Discord: Configuración del canal → Integraciones → Webhooks → Nuevo webhook
+#  2. Copia la URL y pégala abajo en "url"
+#  3. Activa "enabled: true"
+#
+# Placeholders disponibles (igual que en config.yml → phases.death/timeout):
+#  %killer%       → jugador que dio el golpe final ("Nadie" en timeout)
+#  %top1_name%    %top1_damage%
+#  %top2_name%    %top2_damage%
+#  %top3_name%    %top3_damage%
+#  %top4_name%    %top4_damage%
+#  %top5_name%    %top5_damage%
+#
+# El color del embed se indica en hexadecimal, ej: "#AA33FF"
+# El título y la descripción son texto plano de Discord (admite **negrita**, *cursiva*, etc.)
+# — no usar códigos de color de Minecraft (& o §) aquí, Discord no los interpreta.
+# ══════════════════════════════════════════════
+
+enabled: false
+
+url: ""
+
+# Nombre y avatar que mostrará el webhook (vacío = usar los configurados en Discord)
+username: "Dragón Ancestral"
+avatar-url: ""
+
+spawn:
+  enabled: true
+  embed:
+    title: "✦ ¡El Dragón Ancestral ha despertado!"
+    description: "El Dragón Ancestral ha aparecido en el End. ¡Únete a la batalla!"
+    color: "#AA33FF"
+
+death:
+  enabled: true
+  embed:
+    title: "✦ Dragón Ancestral derrotado"
+    description: |-
+      **%killer%** ha dado el golpe final.
+
+      **Top dañadores:**
+      🥇 %top1_name% — %top1_damage% dmg
+      🥈 %top2_name% — %top2_damage% dmg
+      🥉 %top3_name% — %top3_damage% dmg
+      4️⃣ %top4_name% — %top4_damage% dmg
+      5️⃣ %top5_name% — %top5_damage% dmg
+    color: "#AA33FF"
+
+timeout:
+  enabled: false
+  embed:
+    title: "✦ Dragón Ancestral desaparecido"
+    description: |-
+      El Dragón Ancestral ha desaparecido por falta de combatientes.
+
+      **Top dañadores:**
+      🥇 %top1_name% — %top1_damage% dmg
+      🥈 %top2_name% — %top2_damage% dmg
+      🥉 %top3_name% — %top3_damage% dmg
+    color: "#AA33FF"

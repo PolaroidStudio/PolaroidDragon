@@ -1,0 +1,112 @@
+# ══════════════════════════════════════════════
+#              HildaDragon — Menus
+# ══════════════════════════════════════════════
+#
+# Configura TODA la estructura visual de los 3 GUIs del plugin.
+# Soporta colores & y hex &#RRGGBB en los títulos.
+# Los TEXTOS de los ítems (nombre, lore) se siguen editando en messages.yml
+# Materiales válidos: https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/Material.html
+#
+# Slots de un inventario de 3 filas (size: 27):
+#   Fila 1:  0  1  2  3  4  5  6  7  8
+#   Fila 2:  9 10 11 12 13 14 15 16 17
+#   Fila 3: 18 19 20 21 22 23 24 25 26
+#
+# ══════════════════════════════════════════════
+
+# ─────────────────────────────────────────────
+#  VISTA: INFO  (/hildadragon info)
+# ─────────────────────────────────────────────
+info:
+  title: "&#AA33FF&lHildaDragon &8» &fEstado del Dragón"
+  size: 27
+
+  filler:
+    enabled: false
+    material: GRAY_STAINED_GLASS_PANE
+    name: " "
+
+  items:
+    # Ítem central que muestra el estado del dragón
+    status:
+      slot: 13
+      material-active: DRAGON_HEAD    # cuando el evento o countdown están activos
+      material-inactive: BARRIER      # cuando no hay nada
+
+    # Botón de navegación → va al Top del evento actual
+    nav-to-top:
+      slot: 22
+      material: NETHER_STAR
+
+# ─────────────────────────────────────────────
+#  VISTA: TOP EVENTO ACTUAL  (/hildadragon top evento)
+# ─────────────────────────────────────────────
+top-event:
+  title: "&#AA33FF&lHildaDragon &8» &fTop — Evento actual"
+  size: 27
+
+  filler:
+    enabled: false
+    material: GRAY_STAINED_GLASS_PANE
+    name: " "
+
+  items:
+    # Slots de las cabezas del ranking (1er al 5to lugar)
+    # Puedes agregar o quitar slots para cambiar cuántos lugares se muestran
+    ranking:
+      slots: [10, 11, 12, 13, 14]
+
+    # Slot donde se muestra la cabeza del jugador que abre el menú
+    my-position:
+      slot: 4
+
+    # Ítem que aparece cuando no hay evento activo o nadie ha dañado al dragón
+    empty:
+      slot: 13
+      material: BARRIER
+
+    # Botón de navegación → va al Hall of Fame
+    nav-to-hall:
+      slot: 18
+      material: NETHER_STAR
+
+    # Botón de navegación → vuelve al Info
+    nav-to-info:
+      slot: 22
+      material: COMPASS
+
+# ─────────────────────────────────────────────
+#  VISTA: HALL OF FAME  (/hildadragon top)
+# ─────────────────────────────────────────────
+hall-of-fame:
+  title: "&#AA33FF&lHildaDragon &8» &fHall of Fame"
+  size: 27
+
+  filler:
+    enabled: false
+    material: GRAY_STAINED_GLASS_PANE
+    name: " "
+
+  items:
+    # Slots de las cabezas del ranking histórico (1er al 5to lugar)
+    ranking:
+      slots: [10, 11, 12, 13, 14]
+
+    # Slot donde se muestra la cabeza del jugador que abre el menú
+    my-position:
+      slot: 4
+
+    # Ítem que aparece cuando no hay estadísticas registradas
+    empty:
+      slot: 13
+      material: BARRIER
+
+    # Botón de navegación → va al Top del evento actual
+    nav-to-top:
+      slot: 18
+      material: NETHER_STAR
+
+    # Botón de navegación → vuelve al Info
+    nav-to-info:
+      slot: 22
+      material: COMPASS

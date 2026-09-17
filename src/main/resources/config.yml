@@ -1,0 +1,282 @@
+# ══════════════════════════════════════════════
+#              HildaDragon — Config
+# ══════════════════════════════════════════════
+#
+# PLACEHOLDERS DISPONIBLES (PlaceholderAPI)
+# ─────────────────────────────────────────
+#  EVENTO ACTUAL
+#  %hildadragon_active%          → true / false (si el dragón está vivo)
+#  %hildadragon_countdown%       → tiempo restante del countdown (ej. 4m 30s)
+#  %hildadragon_hp%              → HP actual del dragón (ej. 320)
+#  %hildadragon_hp_max%          → HP máximo del dragón (ej. 400)
+#  %hildadragon_participants%    → jugadores que han dañado al dragón
+#
+#  PRÓXIMO EVENTO
+#  %hildadragon_next%            → tiempo hasta el próximo evento (ej. 2h 15m)
+#  %hildadragon_next_time%       → hora exacta del próximo evento (ej. 18:00)
+#
+#  TOP EVENTO ACTUAL (se resetean al morir el dragón)
+#  %hildadragon_top1_name%       → jugador posición 1 del evento actual
+#  %hildadragon_top1_damage%     → daño posición 1 del evento actual
+#  %hildadragon_top2_name%       → (ídem para 2, 3, 4, 5)
+#  %hildadragon_top2_damage%
+#  ... hasta top5
+#
+#  RANKING DEL JUGADOR EN EL EVENTO ACTUAL
+#  %hildadragon_my_damage%       → daño acumulado del jugador en el evento actual
+#  %hildadragon_my_rank%         → posición del jugador en el evento actual (o - si no participó)
+#
+#  HALL OF FAME — histórico acumulado de todos los eventos
+#  %hildadragon_hall_1_name%     → jugador con más daño total histórico
+#  %hildadragon_hall_1_damage%   → daño total histórico posición 1
+#  %hildadragon_hall_1_events%   → nº de eventos en los que participó
+#  %hildadragon_hall_2_name%     → (ídem para 2, 3, 4, 5)
+#  ... hasta hall_5
+#
+#  ESTADÍSTICAS DEL JUGADOR (históricas)
+#  %hildadragon_my_total_damage% → daño total acumulado en todos los eventos
+#  %hildadragon_my_events%       → nº de eventos en los que participó
+#
+# ══════════════════════════════════════════════
+
+dragon:
+  world: "world_the_end"
+  spawn-x: 0
+  spawn-y: 100
+  spawn-z: 0
+  # HP del dragón. Vanilla = 200.0
+  health: 400.0
+  name: "&#7733CC&lD&#8833DD&lr&#9933EE&la&#AA33FF&lg&#9933EE&lo&#8833DD&ln &#7733CC&lA&#6622BB&ln&#5511AA&lc&#4400AA&le&#5511AA&ls&#6622BB&lt&#7733CC&lr&#8833DD&la&#9933EE&ll"
+
+event:
+  auto-spawn: true
+
+  # Zona horaria para los horarios. Lista completa en:
+  # https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+  timezone: "Europe/Madrid"
+
+  # Días y horas en los que spawna el dragón.
+  # Formato: DIA_EN_INGLES HH:mm (24h)
+  # Días válidos: MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY, SUNDAY
+  schedule:
+    - "FRIDAY 20:00"
+    - "SATURDAY 18:00"
+    - "SATURDAY 22:00"
+    - "SUNDAY 18:00"
+
+  # Segundos de aviso antes del spawn
+  countdown-seconds: 300
+
+  # Jugadores mínimos online para que el evento inicie.
+  # Si no hay suficientes jugadores, se pospone al siguiente horario.
+  min-players: 5
+
+  # Minutos máximos que el dragón puede estar vivo sin morir.
+  # Si se alcanza este tiempo, se procesan las recompensas con quien haya participado
+  # y se reprograma el siguiente evento. 0 = desactivado.
+  timeout-minutes: 30
+
+  # Cuántas posiciones del top reciben recompensa de posición
+  top-size: 5
+
+bossbar:
+  enabled: true
+  # Colores: BLUE, GREEN, PINK, PURPLE, RED, WHITE, YELLOW
+  color: PURPLE
+  # Estilos: SOLID, SEGMENTED_6, SEGMENTED_10, SEGMENTED_12, SEGMENTED_20
+  style: SEGMENTED_10
+  # {current} = HP actual, {max} = HP máximo
+  title: "&#AA33FF&lDragón Ancestral &8| &f{current} &8/ &f{max} HP"
+
+# ══════════════════════════════════════════════
+#  FASES DE NOTIFICACIÓN
+#  Cada fase tiene: chat, actionbar, title, sound
+#  El contenido es 100% configurable.
+#
+#  Placeholders por fase:
+#    countdown → %remaining_time%   (ej. 4m 30s)
+#    spawn     → (ninguno adicional)
+#    death     → %killer%
+#                %top1_name%  %top1_damage%
+#                %top2_name%  %top2_damage%
+#                %top3_name%  %top3_damage%
+#                %top4_name%  %top4_damage%
+#                %top5_name%  %top5_damage%
+#    timeout   → mismos que death (killer = "Nadie")
+# ══════════════════════════════════════════════
+phases:
+
+  countdown:
+    notification-at: [ 300, 180, 60, 30, 10, 5, 4, 3, 2, 1 ]
+    notification:
+      chat:
+        enabled: true
+        content:
+          - '&f '
+          - '&#9B76C4&m  &r &#9B76C4◦ Anuncios automáticos ◦ &m  &r'
+          - '&#7733CC&lD&#8833DD&lr&#9933EE&la&#AA33FF&lg&#9933EE&lo&#8833DD&ln &#7733CC&lA&#6622BB&ln&#5511AA&lc&#4400AA&le&#5511AA&ls&#6622BB&lt&#7733CC&lr&#8833DD&la&#9933EE&ll'
+          - '&f '
+          - '&8■ &fEl Dragón Ancestral aparecerá en &#AA33FF%remaining_time%'
+          - '&8■ &fPrepara tu mejor equipo y dirígete al &#AA33FFEnd'
+          - '&8■ &fEl jugador con más daño recibirá la &#AA33FFmayor recompensa'
+          - '&f '
+          - '&7🀀 hildairis.com'
+          - '&f '
+      actionbar:
+        enabled: false
+        content: ''
+      title:
+        enabled: false
+        title: ''
+        subtitle: ''
+        fade-in: 10
+        stay: 40
+        fade-out: 10
+      sound:
+        enabled: true
+        content: ENTITY_ENDER_DRAGON_GROWL
+
+  spawn:
+    notification:
+      chat:
+        enabled: true
+        content:
+          - '&f '
+          - '&#9B76C4&m  &r &#9B76C4◦ Anuncios importantes ◦ &m  &r'
+          - '&#7733CC&l¡&#7C36D5&lE&#8139DF&lL &#883FEB&lD&#8B42EE&lR&#8D44F0&lA&#8F46F1&lG&#9148F1&lÓ&#9249F2&lN &#974EF4&lA&#9950F5&lN&#9C52F6&lC&#9E55F7&lE&#A057F7&lS&#A25AF8&lT&#A45CF9&lR&#A65FFA&lA&#A861FB&lL&#AA63FC&l!'
+          - '&f '
+          - '&8■ &fEl &#AA33FFDragón Ancestral &fha aparecido en el &#AA33FFEnd'
+          - '&8■ &f¡Haz el &#AA33FFmayor daño &fposible para ganar recompensas!'
+          - '&8■ &fSolo los &#AA33FFTop 5 &fdañadores recibirán premios'
+          - '&f '
+          - '&7🀀 hildairis.com'
+          - '&f '
+      actionbar:
+        enabled: true
+        content: '&#AA33FF✦ DRAGÓN ANCESTRAL &8» &f¡Ha aparecido en el End!'
+      title:
+        enabled: true
+        title: '&#AA33FF&l✦ DRAGÓN ANCESTRAL ✦'
+        subtitle: '&7¡Dirígete al End y combate!'
+        fade-in: 10
+        stay: 80
+        fade-out: 20
+      sound:
+        enabled: true
+        content: ENTITY_ENDER_DRAGON_GROWL
+
+  death:
+    notification:
+      chat:
+        enabled: true
+        content:
+          - '&f '
+          - '&#9B76C4&m  &r &#9B76C4◦ Anuncios importantes ◦ &m  &r'
+          - '&#7733CC&l¡&#7C36D5&lE&#8139DF&lL &#883FEB&lD&#8B42EE&lR&#8D44F0&lA&#8F46F1&lG&#9148F1&lÓ&#9249F2&lN &#974EF4&lH&#9950F5&lA &#9C52F6&lS&#9E55F7&lI&#A057F7&lD&#A25AF8&lO &#A45CF9&lD&#A65FFA&lE&#A861FB&lR&#AA63FC&lR&#AC65FD&lO&#AE67FD&lT&#B06AFE&lA&#B26CFE&lD&#B46FFE&lO&#B671FF&l!'
+          - '&f '
+          - '&8■ &f%killer% &fha dado el golpe final'
+          - '&f '
+          - '&8■ &7&lTOP DAÑADORES'
+          - '&8■ &f&l1er &8» &f%top1_name% &8| &#AA33FF%top1_damage% dmg'
+          - '&8■ &f&l2do &8» &f%top2_name% &8| &#AA33FF%top2_damage% dmg'
+          - '&8■ &f&l3er &8» &f%top3_name% &8| &#AA33FF%top3_damage% dmg'
+          - '&8■ &f&l4to &8» &f%top4_name% &8| &#AA33FF%top4_damage% dmg'
+          - '&8■ &f&l5to &8» &f%top5_name% &8| &#AA33FF%top5_damage% dmg'
+          - '&f '
+          - '&8■ &fLos premios han sido entregados &#AA33FFautomáticamente'
+          - '&f '
+          - '&7🀀 hildairis.com'
+          - '&f '
+      actionbar:
+        enabled: false
+        content: ''
+      title:
+        enabled: true
+        title: '&#AA33FF&l✦ DRAGÓN DERROTADO ✦'
+        subtitle: '&7¡Los premios han sido entregados!'
+        fade-in: 10
+        stay: 80
+        fade-out: 20
+      sound:
+        enabled: true
+        content: ENTITY_ENDER_DRAGON_DEATH
+
+  # Notificación cuando el dragón muere por timeout (tiempo agotado)
+  timeout:
+    notification:
+      chat:
+        enabled: true
+        content:
+          - '&f '
+          - '&#9B76C4&m  &r &#9B76C4◦ Anuncios importantes ◦ &m  &r'
+          - '&#7733CC&lD&#8833DD&lr&#9933EE&la&#AA33FF&lg&#9933EE&lo&#8833DD&ln &#7733CC&lA&#6622BB&ln&#5511AA&lc&#4400AA&le&#5511AA&ls&#6622BB&lt&#7733CC&lr&#8833DD&la&#9933EE&ll'
+          - '&f '
+          - '&8■ &fEl Dragón Ancestral ha &#AA33FFdesaparecido &fpor falta de combatientes'
+          - '&8■ &fLas recompensas han sido entregadas a los participantes'
+          - '&f '
+          - '&8■ &7&lTOP DAÑADORES'
+          - '&8■ &f&l1er &8» &f%top1_name% &8| &#AA33FF%top1_damage% dmg'
+          - '&8■ &f&l2do &8» &f%top2_name% &8| &#AA33FF%top2_damage% dmg'
+          - '&8■ &f&l3er &8» &f%top3_name% &8| &#AA33FF%top3_damage% dmg'
+          - '&f '
+          - '&7🀀 hildairis.com'
+          - '&f '
+      actionbar:
+        enabled: false
+        content: ''
+      title:
+        enabled: false
+        title: ''
+        subtitle: ''
+        fade-in: 10
+        stay: 60
+        fade-out: 10
+      sound:
+        enabled: true
+        content: ENTITY_ENDER_DRAGON_DEATH
+
+# ══════════════════════════════════════════════
+#  RECOMPENSAS
+#  {player} = nombre del jugador
+#
+#  Lógica:
+#  - positions   → top N jugadores con más daño (según top-size)
+#  - kill-bonus  → bono adicional al jugador que dio el golpe final
+#  - participation → jugadores fuera del top que superaron min-damage
+#
+#  money    → cantidad entregada vía Vault si está disponible (funciona offline).
+#  commands → comandos extra opcionales ejecutados por consola (lista vacía = ninguno).
+#
+#  min-damage → daño mínimo para ser elegible a recompensa de participation.
+#               Los jugadores del top siempre reciben su recompensa sin importar este valor.
+# ══════════════════════════════════════════════
+rewards:
+  # Daño mínimo para recibir la recompensa de participación (no afecta al top)
+  min-damage: 10.0
+
+  positions:
+    1:
+      money: 5000
+      commands: []
+    2:
+      money: 2500
+      commands: []
+    3:
+      money: 1000
+      commands: []
+    4:
+      money: 500
+      commands: []
+    5:
+      money: 250
+      commands: []
+
+  kill-bonus:
+    enabled: true
+    money: 1000
+    commands: []
+
+  participation:
+    enabled: true
+    money: 100
+    commands: []
