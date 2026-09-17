@@ -1,5 +1,10 @@
 # PolaroidDragon
 
+[![Build](https://github.com/PolaroidStudio/PolaroidDragon/actions/workflows/build.yml/badge.svg)](https://github.com/PolaroidStudio/PolaroidDragon/actions/workflows/build.yml)
+[![Paper](https://img.shields.io/badge/Paper-1.21-0288D1)](https://papermc.io/)
+[![Java](https://img.shields.io/badge/Java-21-E76F00)](https://adoptium.net/)
+[![License](https://img.shields.io/badge/License-Apache%202.0-D22128)](LICENSE)
+
 Scheduled Ancestral Dragon boss events for Paper servers, with live damage
 leaderboards, a persistent Hall of Fame and configurable rewards.
 
