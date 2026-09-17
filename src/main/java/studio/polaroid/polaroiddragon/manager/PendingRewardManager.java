@@ -111,6 +111,6 @@ public class PendingRewardManager {
             }
         }
 
-        player.sendMessage(plugin.getMessageManager().get("general.pending-rewards-delivered"));
+        player.sendMessage(plugin.getMessageManager().component("general.pending-rewards-delivered"));
     }
 }
