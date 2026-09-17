@@ -16,7 +16,8 @@ so the Hall of Fame survives restarts.
   PlaceholderAPI.
 - **Hall of Fame** — all-time stats backed by SQLite (default) or MySQL.
 - **Rewards** — per-position money via Vault, plus a kill bonus and a
-  participation reward. Offline winners are paid on their next join.
+  participation reward. Money reaches offline winners immediately through
+  Vault; any reward commands are queued and run on their next join.
 - **Menus** — in-game GUIs for event status, the current top and the Hall of Fame.
 - **Discord webhook** — optional spawn / death / timeout notifications.
 - **Localization** — ships English and Spanish; add your own language file.

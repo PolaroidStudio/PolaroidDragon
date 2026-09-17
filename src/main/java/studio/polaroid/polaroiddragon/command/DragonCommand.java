@@ -138,7 +138,7 @@ public class DragonCommand implements CommandExecutor, TabCompleter {
     }
 
     // ─────────────────────────────────────────────
-    //  INFO (consola)
+    //  INFO (console)
     // ─────────────────────────────────────────────
 
     private void sendInfoChat(CommandSender sender) {
@@ -170,7 +170,7 @@ public class DragonCommand implements CommandExecutor, TabCompleter {
     }
 
     // ─────────────────────────────────────────────
-    //  TOP EVENTO ACTUAL
+    //  CURRENT EVENT TOP
     // ─────────────────────────────────────────────
 
     private void sendCurrentEventTop(CommandSender sender) {
@@ -256,7 +256,7 @@ public class DragonCommand implements CommandExecutor, TabCompleter {
     }
 
     // ─────────────────────────────────────────────
-    //  AYUDA
+    //  HELP
     // ─────────────────────────────────────────────
 
     private void sendHelp(CommandSender sender) {

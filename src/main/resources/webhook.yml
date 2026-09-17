@@ -1,50 +1,50 @@
 # ══════════════════════════════════════════════
-#      PolaroidDragon — Webhook de Discord
+#      PolaroidDragon — Discord webhook
 # ══════════════════════════════════════════════
 #
-# Anuncia el spawn y la muerte del Dragón Ancestral en un canal de Discord.
+# Announces the Ancestral Dragon's spawn and death in a Discord channel.
 #
-# Cómo obtener la URL del webhook:
-#  1. En Discord: Configuración del canal → Integraciones → Webhooks → Nuevo webhook
-#  2. Copia la URL y pégala abajo en "url"
-#  3. Activa "enabled: true"
+# How to get the webhook URL:
+#  1. In Discord: Channel settings → Integrations → Webhooks → New webhook
+#  2. Copy the URL and paste it below under "url"
+#  3. Set "enabled: true"
 #
-# Placeholders disponibles (igual que en config.yml → phases.death/timeout):
-#  %killer%       → jugador que dio el golpe final ("Nadie" en timeout)
+# Available placeholders (the same as config.yml → phases.death/timeout):
+#  %killer%       → the player who landed the final blow ("Nobody" on timeout)
 #  %top1_name%    %top1_damage%
 #  %top2_name%    %top2_damage%
 #  %top3_name%    %top3_damage%
 #  %top4_name%    %top4_damage%
 #  %top5_name%    %top5_damage%
 #
-# El color del embed se indica en hexadecimal, ej: "#289bd0"
-# El título y la descripción son texto plano de Discord (admite **negrita**, *cursiva*, etc.)
-# — no usar códigos de color de Minecraft (& o §) aquí, Discord no los interpreta.
+# The embed color is hexadecimal, e.g. "#289bd0"
+# Title and description are plain Discord text (**bold**, *italic*, and so on)
+# — do not use Minecraft color codes (& or §) here, Discord does not read them.
 # ══════════════════════════════════════════════
 
 enabled: false
 
 url: ""
 
-# Nombre y avatar que mostrará el webhook (vacío = usar los configurados en Discord)
-username: "Dragón Ancestral"
+# Name and avatar the webhook shows (empty = use whatever Discord has configured)
+username: "Ancestral Dragon"
 avatar-url: ""
 
 spawn:
   enabled: true
   embed:
-    title: "✦ ¡El Dragón Ancestral ha despertado!"
-    description: "El Dragón Ancestral ha aparecido en el End. ¡Únete a la batalla!"
+    title: "✦ The Ancestral Dragon has awoken!"
+    description: "The Ancestral Dragon has appeared in the End. Join the fight!"
     color: "#289bd0"
 
 death:
   enabled: true
   embed:
-    title: "✦ Dragón Ancestral derrotado"
+    title: "✦ Ancestral Dragon defeated"
     description: |-
-      **%killer%** ha dado el golpe final.
+      **%killer%** landed the final blow.
 
-      **Top dañadores:**
+      **Top damagers:**
       🥇 %top1_name% — %top1_damage% dmg
       🥈 %top2_name% — %top2_damage% dmg
       🥉 %top3_name% — %top3_damage% dmg
@@ -55,11 +55,11 @@ death:
 timeout:
   enabled: false
   embed:
-    title: "✦ Dragón Ancestral desaparecido"
+    title: "✦ Ancestral Dragon vanished"
     description: |-
-      El Dragón Ancestral ha desaparecido por falta de combatientes.
+      The Ancestral Dragon vanished for lack of challengers.
 
-      **Top dañadores:**
+      **Top damagers:**
       🥇 %top1_name% — %top1_damage% dmg
       🥈 %top2_name% — %top2_damage% dmg
       🥉 %top3_name% — %top3_damage% dmg

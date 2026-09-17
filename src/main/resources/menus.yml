@@ -1,43 +1,43 @@
 # ══════════════════════════════════════════════
-#            PolaroidDragon — Menús
+#            PolaroidDragon — Menus
 # ══════════════════════════════════════════════
 #
-# Estructura visual de las 3 vistas del plugin. Los TEXTOS de los ítems (nombres y lore)
-# se editan en lang/messages_<idioma>.yml; aquí se configuran títulos, tamaños,
-# materiales, slots y el relleno de fondo.
+# Visual structure of the plugin's 3 views. Item TEXTS (names and lore)
+# are edited in lang/messages_<language>.yml; here you configure titles, sizes,
+# materials, slots and the background filler.
 #
-# Los títulos aceptan MiniMessage (https://docs.advntr.dev/minimessage/format.html).
-# Los códigos antiguos & y &#RRGGBB también funcionan, pero usa MiniMessage en texto nuevo.
+# Titles accept MiniMessage (https://docs.advntr.dev/minimessage/format.html).
+# The legacy & and &#RRGGBB codes still work, but use MiniMessage in new text.
 #
-# Estilo Polaroid: el título de un menú es una etiqueta de la ventana, no un sitio para
-# llamar la atención. Va siempre en <dark_gray><b>.
+# Polaroid style: a menu title is a label for the window, not a place to
+# draw attention. It is always in <dark_gray><b>.
 #
-# Materiales válidos:
+# Valid materials:
 # https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/Material.html
 #
-# Slots de un inventario de 3 filas (size: 27):
-#   Fila 1:  0  1  2  3  4  5  6  7  8
-#   Fila 2:  9 10 11 12 13 14 15 16 17
-#   Fila 3: 18 19 20 21 22 23 24 25 26
+# Slots of a 3-row inventory (size: 27):
+#   Row 1:  0  1  2  3  4  5  6  7  8
+#   Row 2:  9 10 11 12 13 14 15 16 17
+#   Row 3: 18 19 20 21 22 23 24 25 26
 #
-# ── EL RELLENO (filler) ───────────────────────
-# enabled      true  = los huecos vacíos se rellenan con un panel decorativo.
-#                      Déjalo en true: además de verse mejor, evita que un jugador
-#                      pueda depositar objetos en los huecos libres del menú.
-#              false = el menú queda con huecos vacíos (no recomendado).
-# material     el bloque usado como relleno. El estándar Polaroid es el panel negro.
-# name         nombre del ítem de relleno. Solo se usa si hide-tooltip está en false.
-# hide-tooltip true  = el panel no muestra ningún tooltip al pasar el ratón (recomendado:
-#                      un tooltip vacío siguiendo al cursor parece un error).
-#              false = muestra el texto de "name".
+# ── THE FILLER ────────────────────────────────
+# enabled      true  = empty gaps are filled with a decorative pane.
+#                      Leave it on true: besides looking better, it prevents a player
+#                      from depositing items in the menu's free gaps.
+#              false = the menu is left with empty gaps (not recommended).
+# material     the block used as filler. The Polaroid standard is the black pane.
+# name         name of the filler item. Only used if hide-tooltip is false.
+# hide-tooltip true  = the pane shows no tooltip on hover (recommended:
+#                      an empty tooltip following the cursor looks like a bug).
+#              false = shows the "name" text.
 #
 # ══════════════════════════════════════════════
 
 # ─────────────────────────────────────────────
-#  VISTA: INFO  (/polaroiddragon info)
+#  VIEW: INFO  (/polaroiddragon info)
 # ─────────────────────────────────────────────
 info:
-  title: "<dark_gray><b>ᴇsᴛᴀᴅᴏ ᴅᴇʟ ᴅʀᴀɢᴏɴ"
+  title: "<dark_gray><b>ᴅʀᴀɢᴏɴ sᴛᴀᴛᴜs"
   size: 27
 
   filler:
@@ -47,22 +47,22 @@ info:
     hide-tooltip: true
 
   items:
-    # Ítem central que muestra el estado del dragón.
+    # Central item showing the dragon's status.
     status:
       slot: 13
-      material-active: DRAGON_HEAD    # cuando el evento o la cuenta atrás están activos
-      material-inactive: BARRIER      # cuando no hay nada en curso
+      material-active: DRAGON_HEAD    # when the event or countdown is active
+      material-inactive: BARRIER      # when nothing is in progress
 
-    # Botón de navegación → abre el Top del evento actual.
+    # Navigation button → opens the current event Top.
     nav-to-top:
       slot: 22
       material: NETHER_STAR
 
 # ─────────────────────────────────────────────
-#  VISTA: TOP DEL EVENTO ACTUAL  (/polaroiddragon top evento)
+#  VIEW: CURRENT EVENT TOP  (/polaroiddragon top event)
 # ─────────────────────────────────────────────
 top-event:
-  title: "<dark_gray><b>ᴛᴏᴘ ᴅᴇʟ ᴇᴠᴇɴᴛᴏ"
+  title: "<dark_gray><b>ᴇᴠᴇɴᴛ ᴛᴏᴘ"
   size: 27
 
   filler:
@@ -72,35 +72,35 @@ top-event:
     hide-tooltip: true
 
   items:
-    # Slots de las cabezas del ranking (1º al 5º).
-    # Añade o quita slots para cambiar cuántos puestos se muestran.
+    # Slots for the ranking heads (1st to 5th).
+    # Add or remove slots to change how many places are shown.
     ranking:
       slots: [10, 11, 12, 13, 14]
 
-    # Slot donde se muestra la cabeza del jugador que abre el menú.
+    # Slot where the head of the player opening the menu is shown.
     my-position:
       slot: 4
 
-    # Ítem mostrado cuando no hay evento activo o nadie ha dañado al dragón.
+    # Item shown when there is no active event or nobody has damaged the dragon.
     empty:
       slot: 13
       material: BARRIER
 
-    # Botón de navegación → abre el Salón de la Fama.
+    # Navigation button → opens the Hall of Fame.
     nav-to-hall:
       slot: 18
       material: NETHER_STAR
 
-    # Botón de navegación → vuelve a la vista de estado.
+    # Navigation button → returns to the status view.
     nav-to-info:
       slot: 22
       material: ARROW
 
 # ─────────────────────────────────────────────
-#  VISTA: SALÓN DE LA FAMA  (/polaroiddragon top)
+#  VIEW: HALL OF FAME  (/polaroiddragon top)
 # ─────────────────────────────────────────────
 hall-of-fame:
-  title: "<dark_gray><b>sᴀʟᴏɴ ᴅᴇ ʟᴀ ғᴀᴍᴀ"
+  title: "<dark_gray><b>ʜᴀʟʟ ᴏғ ғᴀᴍᴇ"
   size: 27
 
   filler:
@@ -110,25 +110,25 @@ hall-of-fame:
     hide-tooltip: true
 
   items:
-    # Slots de las cabezas del ranking histórico (1º al 5º).
+    # Slots for the all-time ranking heads (1st to 5th).
     ranking:
       slots: [10, 11, 12, 13, 14]
 
-    # Slot donde se muestra la cabeza del jugador que abre el menú.
+    # Slot where the head of the player opening the menu is shown.
     my-position:
       slot: 4
 
-    # Ítem mostrado cuando aún no hay estadísticas registradas.
+    # Item shown when no statistics have been recorded yet.
     empty:
       slot: 13
       material: BARRIER
 
-    # Botón de navegación → abre el Top del evento actual.
+    # Navigation button → opens the current event Top.
     nav-to-top:
       slot: 18
       material: NETHER_STAR
 
-    # Botón de navegación → vuelve a la vista de estado.
+    # Navigation button → returns to the status view.
     nav-to-info:
       slot: 22
       material: ARROW

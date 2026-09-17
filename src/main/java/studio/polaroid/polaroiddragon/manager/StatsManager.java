@@ -22,13 +22,13 @@ public class StatsManager {
     /** Upper bound on how long server shutdown waits for the final flush. */
     private static final long SHUTDOWN_TIMEOUT_MILLIS = 10_000L;
 
-    // Totales acumulados por jugador — lectura/escritura desde hilo principal Y async (PlaceholderAPI)
+    // Accumulated per-player totals — read/written from the main thread AND async (PlaceholderAPI)
     private final Map<UUID, PlayerStats> totals = new ConcurrentHashMap<>();
 
-    // Snapshot del ranking, reemplazado en cada flush(). Lectura desde cualquier hilo.
+    // Ranking snapshot, replaced on every flush(). Readable from any thread.
     private volatile List<PlayerStats> cachedRanking = new ArrayList<>();
 
-    // Deltas acumulados desde el último flush(). Solo se accede desde el hilo principal.
+    // Deltas accumulated since the last flush(). Accessed from the main thread only.
     private final Map<UUID, PendingDelta> pending = new HashMap<>();
 
     public StatsManager(PolaroidDragon plugin) {
@@ -73,7 +73,7 @@ public class StatsManager {
     }
 
     // ─────────────────────────────────────────────
-    //  MIGRACIÓN DESDE stats.yml (una sola vez)
+    //  MIGRATION FROM stats.yml (one time only)
     // ─────────────────────────────────────────────
 
     private List<PlayerStats> maybeMigrateFromYaml() {
@@ -102,24 +102,24 @@ public class StatsManager {
 
         File backup = new File(plugin.getDataFolder(), "stats.yml.bak");
         if (statsFile.renameTo(backup)) {
-            plugin.getLogger().info("Migración completada: " + migrated.size()
-                    + " jugadores importados desde stats.yml a la base de datos. El archivo antiguo se renombró a stats.yml.bak.");
+            plugin.getLogger().info("Migration complete: " + migrated.size()
+                    + " players imported from stats.yml into the database. The old file was renamed to stats.yml.bak.");
         } else {
-            plugin.getLogger().warning("Migración completada (" + migrated.size()
-                    + " jugadores), pero no se pudo renombrar stats.yml a stats.yml.bak.");
+            plugin.getLogger().warning("Migration complete (" + migrated.size()
+                    + " players), but stats.yml could not be renamed to stats.yml.bak.");
         }
 
         return migrated;
     }
 
     // ─────────────────────────────────────────────
-    //  REGISTRO DE EVENTOS
+    //  EVENT RECORDING
     // ─────────────────────────────────────────────
 
     /**
-     * Registra la participación de un jugador al finalizar un evento.
-     * Llamado una vez por jugador por evento. No persiste a disco — llamar a
-     * flush() una sola vez después de procesar a todos los participantes.
+     * Records a player's participation when an event ends.
+     * Called once per player per event. Does not persist to disk — call
+     * flush() a single time after processing every participant.
      */
     public void recordParticipation(UUID uuid, String name, double damage) {
         totals.compute(uuid, (key, existing) -> existing == null
@@ -135,7 +135,7 @@ public class StatsManager {
         });
     }
 
-    /** Reconstruye la caché de ranking en memoria y persiste los deltas pendientes de forma asíncrona. */
+    /** Rebuilds the in-memory ranking cache and persists the pending deltas asynchronously. */
     public void flush() {
         rebuildCache();
 
@@ -158,10 +158,10 @@ public class StatsManager {
     }
 
     // ─────────────────────────────────────────────
-    //  CONSULTAS
+    //  QUERIES
     // ─────────────────────────────────────────────
 
-    /** Top N por daño total histórico. */
+    /** Top N by all-time total damage. */
     public List<PlayerStats> getTopByDamage(int limit) {
         return cachedRanking.stream().limit(limit).collect(Collectors.toList());
     }
@@ -181,7 +181,7 @@ public class StatsManager {
     }
 
     // ─────────────────────────────────────────────
-    //  CIERRE
+    //  SHUTDOWN
     // ─────────────────────────────────────────────
 
     /**

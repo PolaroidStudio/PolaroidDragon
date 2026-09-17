@@ -35,7 +35,7 @@ public class DragonPlaceholder extends PlaceholderExpansion {
 
         switch (identifier) {
 
-            // ── EVENTO ACTUAL ──────────────────────────
+            // ── CURRENT EVENT ──────────────────────────
             case "active":
                 return dragonManager.isEventActive() ? "true" : "false";
 
@@ -56,7 +56,7 @@ public class DragonPlaceholder extends PlaceholderExpansion {
             case "participants":
                 return String.valueOf(tracker.getParticipantCount());
 
-            // ── PRÓXIMO EVENTO ─────────────────────────
+            // ── NEXT EVENT ─────────────────────────
             case "next":
                 return TimeUtil.format(dragonManager.getScheduleManager().getSecondsUntilNext());
             case "next_short":
@@ -68,7 +68,7 @@ public class DragonPlaceholder extends PlaceholderExpansion {
             case "next_full":
                 return dragonManager.getScheduleManager().getNextFullString();
 
-            // ── JUGADOR — EVENTO ACTUAL ────────────────
+            // ── PLAYER — CURRENT EVENT ────────────────
             case "my_damage":
                 if (player == null) return "0";
                 return String.format("%,.0f", tracker.getDamage(player.getUniqueId()));
@@ -83,7 +83,7 @@ public class DragonPlaceholder extends PlaceholderExpansion {
                 return "-";
             }
 
-            // ── JUGADOR — HISTÓRICO ────────────────────
+            // ── PLAYER — ALL-TIME ────────────────────
             case "my_total_damage": {
                 if (player == null) return "0";
                 StatsManager.PlayerStats ps = statsManager.getPlayerStats(player.getUniqueId());
@@ -96,7 +96,7 @@ public class DragonPlaceholder extends PlaceholderExpansion {
             }
 
             default: {
-                // ── TOP EVENTO ACTUAL: top1_name, top1_damage … top5 ──
+                // ── CURRENT EVENT TOP: top1_name, top1_damage … top5 ──
                 for (int i = 1; i <= 5; i++) {
                     if (identifier.equals("top" + i + "_name"))
                         return getTopName(tracker, i);

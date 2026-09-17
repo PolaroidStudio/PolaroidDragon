@@ -89,7 +89,7 @@ public class DragonManager {
     }
 
     // ─────────────────────────────────────────────
-    //  SCAN AL INICIAR
+    //  STARTUP SCAN
     // ─────────────────────────────────────────────
 
     /**
@@ -156,7 +156,7 @@ public class DragonManager {
     }
 
     // ─────────────────────────────────────────────
-    //  SCHEDULER POR ZONA HORARIA
+    //  TIMEZONE SCHEDULER
     // ─────────────────────────────────────────────
 
     public void scheduleNextEvent() {
@@ -166,46 +166,46 @@ public class DragonManager {
         scheduleManager.computeNextEvent();
 
         if (!scheduleManager.hasNextEvent()) {
-            plugin.getLogger().warning("No hay horarios válidos en event.schedule.");
+            plugin.getLogger().warning("No valid entries in event.schedule.");
             return;
         }
 
-        plugin.getLogger().info("Próximo evento: " + scheduleManager.getNextFullString()
-                + " (en " + TimeUtil.format(scheduleManager.getSecondsUntilNext()) + ")");
+        plugin.getLogger().info("Next event: " + scheduleManager.getNextFullString()
+                + " (in " + TimeUtil.format(scheduleManager.getSecondsUntilNext()) + ")");
 
-        // Comprueba cada 20 segundos si ya toca el evento.
-        // Más fiable que runTaskLater con millones de ticks.
+        // Checks every 20 seconds whether the event is due.
+        // More reliable than runTaskLater with millions of ticks.
         scheduleTask = new BukkitRunnable() {
             @Override
             public void run() {
-                if (isAnyEventRunning()) return; // ya hay evento, esperar
+                if (isAnyEventRunning()) return; // an event is already running, wait
 
                 long seconds = scheduleManager.getSecondsUntilNext();
 
-                if (seconds > 0) return; // aún no toca
+                if (seconds > 0) return; // not due yet
 
-                // Ya llegó la hora — cancelar este task y arrancar
+                // The time has come — cancel this task and start
                 cancel();
                 scheduleTask = null;
 
                 int minPlayers = plugin.getConfig().getInt("event.min-players", 1);
                 if (Bukkit.getOnlinePlayers().size() < minPlayers) {
-                    plugin.getLogger().info("Jugadores insuficientes ("
+                    plugin.getLogger().info("Not enough players ("
                             + Bukkit.getOnlinePlayers().size() + "/" + minPlayers
-                            + "). Evento pospuesto al siguiente horario.");
+                            + "). Event postponed to the next scheduled time.");
                     scheduleNextEvent();
                     return;
                 }
 
                 startCountdown();
             }
-        }.runTaskTimer(plugin, 0L, 400L); // cada 20 segundos
+        }.runTaskTimer(plugin, 0L, 400L); // every 20 seconds
     }
 
     /**
-     * Reaplica la programación tras un /reload: si auto-spawn está activo,
-     * (re)inicia el scheduleTask con la config actualizada; si se desactivó,
-     * lo cancela.
+     * Reapplies the schedule after a /reload: when auto-spawn is enabled it
+     * (re)starts scheduleTask with the updated config; when it was disabled,
+     * it cancels it.
      */
     public void reschedule() {
         if (plugin.getConfig().getBoolean("event.auto-spawn")) {
@@ -216,7 +216,7 @@ public class DragonManager {
         }
     }
 
-    /** Recarga webhook.yml. Llamado desde /polaroiddragon reload. */
+    /** Reloads webhook.yml. Called from /polaroiddragon reload. */
     public void reloadWebhook() {
         discordWebhookManager.reload();
     }
@@ -227,7 +227,7 @@ public class DragonManager {
 
     public void startCountdown() {
         if (isAnyEventRunning()) {
-            plugin.getLogger().warning("startCountdown() ignorado — ya hay un evento o countdown activo.");
+            plugin.getLogger().warning("startCountdown() ignored: an event or countdown is already running.");
             return;
         }
 
@@ -261,7 +261,7 @@ public class DragonManager {
 
     public void spawnDragon() {
         if (isAnyEventRunning()) {
-            plugin.getLogger().warning("spawnDragon() ignorado — ya hay un evento o countdown activo.");
+            plugin.getLogger().warning("spawnDragon() ignored: an event or countdown is already running.");
             return;
         }
 
@@ -465,21 +465,21 @@ public class DragonManager {
     }
 
     // ─────────────────────────────────────────────
-    //  MUERTE / FIN DEL EVENTO
+    //  DEATH / EVENT END
     // ─────────────────────────────────────────────
 
-    /** Llamado desde DragonDeathListener cuando muere el dragón del evento. */
+    /** Called from DragonDeathListener when the event dragon dies. */
     public void handleDragonDeath(EnderDragon dragon, Player killer) {
         if (!dragon.getUniqueId().equals(activeDragonUUID)) return;
         handleEventEnd(dragon, killer, false);
     }
 
     /**
-     * Lógica central de fin de evento. Usada tanto por muerte natural como por timeout.
+     * Core end-of-event logic. Used both by a natural death and by a timeout.
      *
-     * @param dragon   el dragón (puede ser null si ya fue removido)
-     * @param killer   jugador que dio el golpe final (null si timeout o sin killer)
-     * @param timeout  true si el evento terminó por tiempo agotado
+     * @param dragon   the dragon (may be null when it was already removed)
+     * @param killer   the player who landed the final blow (null on timeout or with no killer)
+     * @param timeout  true when the event ended because time ran out
      */
     private void handleEventEnd(EnderDragon dragon, Player killer, boolean timeout) {
         // Exactly once per event. The timeout task, the death listener and an
@@ -499,7 +499,7 @@ public class DragonManager {
         int topSize = plugin.getConfig().getInt("event.top-size", 5);
         double minDamage = plugin.getConfig().getDouble("rewards.min-damage", 10.0);
 
-        // Notificación
+        // Notification
         String phase = timeout ? "phases.timeout.notification" : "phases.death.notification";
         Map<String, String> ph = buildEndPlaceholders(ranking, topSize, killer);
         NotificationSender.send(plugin.getConfig(), phase, ph);
@@ -509,7 +509,7 @@ public class DragonManager {
             discordWebhookManager.sendDeath(ph);
         }
 
-        // Recompensas por posición (sin restricción de min-damage)
+        // Position rewards (not subject to the min-damage restriction)
         Set<UUID> rewarded = givePositionRewards(ranking, topSize);
 
         // Kill bonus
@@ -518,7 +518,7 @@ public class DragonManager {
             giveMoney(killer, plugin.getConfig().getDouble("rewards.kill-bonus.money", 0));
         }
 
-        // Participación — fuera del top y que superen min-damage
+        // Participation — outside the top and above min-damage
         if (plugin.getConfig().getBoolean("rewards.participation.enabled")) {
             List<String> commands = plugin.getConfig().getStringList("rewards.participation.commands");
             double money = plugin.getConfig().getDouble("rewards.participation.money", 0);
@@ -554,7 +554,7 @@ public class DragonManager {
     }
 
     // ─────────────────────────────────────────────
-    //  RECOMPENSAS
+    //  REWARDS
     // ─────────────────────────────────────────────
 
     private Set<UUID> givePositionRewards(List<Map.Entry<UUID, Double>> ranking, int topSize) {
@@ -643,14 +643,14 @@ public class DragonManager {
     }
 
     // ─────────────────────────────────────────────
-    //  DAÑO
+    //  DAMAGE
     // ─────────────────────────────────────────────
 
     public void registerDamage(Player player, double damage) {
         damageTracker.addDamage(player.getUniqueId(), player.getName(), damage);
     }
 
-    /** Verifica que el dragón sea el del evento por UUID. */
+    /** Verifies by UUID that the dragon is the event dragon. */
     public boolean isEventDragon(EnderDragon dragon) {
         return eventActive && activeDragonUUID != null
                 && dragon.getUniqueId().equals(activeDragonUUID);

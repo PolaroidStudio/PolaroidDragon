@@ -19,7 +19,7 @@ public class TimeUtil {
         return sb.toString().trim();
     }
 
-    /** Igual que format() pero sin mostrar los segundos. Útil para hologramas y menús. */
+    /** Same as format() but without showing the seconds. Useful for holograms and menus. */
     public static String formatShort(long totalSeconds) {
         if (totalSeconds <= 0) return "0m";
 

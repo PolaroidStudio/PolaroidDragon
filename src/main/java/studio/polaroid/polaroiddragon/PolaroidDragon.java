@@ -70,18 +70,18 @@ public class PolaroidDragon extends JavaPlugin {
         // PlaceholderAPI
         if (getServer().getPluginManager().getPlugin("PlaceholderAPI") != null) {
             new DragonPlaceholder(dragonManager, statsManager).register();
-            getLogger().info("PlaceholderAPI detectado — placeholders registrados.");
+            getLogger().info("PlaceholderAPI detected; placeholders registered.");
         }
 
-        // Escanear dragón existente tras reinicio
+        // Scan for an existing dragon after a restart
         dragonManager.scanExistingDragon();
 
-        // Programar próximo evento solo si no hay dragón activo
+        // Schedule the next event only if no dragon is active
         if (!dragonManager.isEventActive()) {
             dragonManager.scheduleNextEvent();
         }
 
-        getLogger().info("PolaroidDragon habilitado correctamente.");
+        getLogger().info("PolaroidDragon enabled.");
     }
 
     @Override
@@ -92,7 +92,7 @@ public class PolaroidDragon extends JavaPlugin {
         if (statsManager != null) {
             statsManager.close();
         }
-        getLogger().info("PolaroidDragon deshabilitado.");
+        getLogger().info("PolaroidDragon disabled.");
     }
 
     public static PolaroidDragon getInstance() { return instance; }

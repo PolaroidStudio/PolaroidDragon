@@ -39,8 +39,8 @@ public class ScheduleManager {
     }
 
     /**
-     * Calcula el próximo evento según la lista de horarios semanales.
-     * Formato de cada entrada: "FRIDAY 20:00" (DayOfWeek HH:mm)
+     * Computes the next event from the weekly schedule list.
+     * Format of each entry: "FRIDAY 20:00" (DayOfWeek HH:mm)
      */
     public void computeNextEvent() {
         ZoneId zone = safeZone();
@@ -52,14 +52,14 @@ public class ScheduleManager {
         for (String entry : schedule) {
             ZonedDateTime candidate = parseEntry(now, entry);
             if (candidate == null) continue;
-            // Si ya pasó esta semana, sumar 7 días
+            // Already past this week, so add 7 days
             if (!candidate.isAfter(now)) candidate = candidate.plusWeeks(1);
             candidates.add(candidate);
         }
 
         if (candidates.isEmpty()) {
             nextEventTime = null;
-            plugin.getLogger().warning("No hay horarios válidos en event.schedule. Formato: FRIDAY 20:00");
+            plugin.getLogger().warning("No valid entries in event.schedule. Expected format: FRIDAY 20:00");
             return;
         }
 
@@ -67,8 +67,8 @@ public class ScheduleManager {
     }
 
     /**
-     * Parsea una entrada "FRIDAY 20:00" y devuelve el ZonedDateTime de esa ocurrencia
-     * en la semana actual (puede estar en el pasado; el llamador suma 7 días si hace falta).
+     * Parses a "FRIDAY 20:00" entry and returns the ZonedDateTime of that occurrence
+     * in the current week (it may be in the past; the caller adds 7 days when needed).
      */
     private ZonedDateTime parseEntry(ZonedDateTime base, String entry) {
         ScheduleEntryParser.Result result = ScheduleEntryParser.parse(base, entry);
@@ -85,19 +85,19 @@ public class ScheduleManager {
     //  GETTERS
     // ─────────────────────────────────────────────
 
-    /** Segundos hasta el próximo evento. -1 si no hay horarios. */
+    /** Seconds until the next event. -1 when no schedule is configured. */
     public long getSecondsUntilNext() {
         if (nextEventTime == null) return -1;
         long seconds = java.time.Duration.between(ZonedDateTime.now(safeZone()), nextEventTime).getSeconds();
         return Math.max(0, seconds);
     }
 
-    /** Ticks hasta el próximo evento. */
+    /** Ticks until the next event. */
     public long getTicksUntilNext() {
         return getSecondsUntilNext() * 20L;
     }
 
-    /** Hora del próximo evento. Ej: "18:00" */
+    /** Time of the next event. E.g. "18:00" */
     public String getNextTimeString() {
         return nextEventTime != null ? nextEventTime.format(TIME_FMT) : "-";
     }
@@ -113,7 +113,7 @@ public class ScheduleManager {
         return DAY_NAMES_FALLBACK.getOrDefault(day, day.name());
     }
 
-    /** Día y hora del próximo evento. Ej: "Sábado 18:00" */
+    /** Day and time of the next event. E.g. "Saturday 18:00" */
     public String getNextFullString() {
         if (nextEventTime == null) return "-";
         return getNextDayString() + " " + getNextTimeString();

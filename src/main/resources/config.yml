@@ -2,117 +2,120 @@
 #            PolaroidDragon — Config
 # ══════════════════════════════════════════════
 #
-# PLACEHOLDERS DISPONIBLES (PlaceholderAPI)
+# AVAILABLE PLACEHOLDERS (PlaceholderAPI)
 # ─────────────────────────────────────────
-#  EVENTO ACTUAL
-#  %polaroiddragon_active%          → true / false (si el dragón está vivo)
-#  %polaroiddragon_countdown%       → tiempo restante del countdown (ej. 4m 30s)
-#  %polaroiddragon_hp%              → HP actual del dragón (ej. 320)
-#  %polaroiddragon_hp_max%          → HP máximo del dragón (ej. 400)
-#  %polaroiddragon_participants%    → jugadores que han dañado al dragón
+#  CURRENT EVENT
+#  %polaroiddragon_active%          → true / false (whether the dragon is alive)
+#  %polaroiddragon_countdown%       → countdown time remaining (e.g. 4m 30s)
+#  %polaroiddragon_hp%              → the dragon's current HP (e.g. 320)
+#  %polaroiddragon_hp_max%          → the dragon's maximum HP (e.g. 400)
+#  %polaroiddragon_participants%    → players who have damaged the dragon
 #
-#  PRÓXIMO EVENTO
-#  %polaroiddragon_next%            → tiempo hasta el próximo evento (ej. 2h 15m)
-#  %polaroiddragon_next_time%       → hora exacta del próximo evento (ej. 18:00)
+#  NEXT EVENT
+#  %polaroiddragon_next%            → time until the next event (e.g. 2h 15m)
+#  %polaroiddragon_next_short%      → the same, in short form
+#  %polaroiddragon_next_time%       → exact time of the next event (e.g. 18:00)
+#  %polaroiddragon_next_day%        → day of the next event (e.g. Saturday)
+#  %polaroiddragon_next_full%       → day and time (e.g. Saturday 18:00)
 #
-#  TOP EVENTO ACTUAL (se resetean al morir el dragón)
-#  %polaroiddragon_top1_name%       → jugador posición 1 del evento actual
-#  %polaroiddragon_top1_damage%     → daño posición 1 del evento actual
-#  %polaroiddragon_top2_name%       → (ídem para 2, 3, 4, 5)
+#  CURRENT EVENT TOP (reset when the dragon dies)
+#  %polaroiddragon_top1_name%       → player in 1st place this event
+#  %polaroiddragon_top1_damage%     → damage of 1st place this event
+#  %polaroiddragon_top2_name%       → (same for 2, 3, 4, 5)
 #  %polaroiddragon_top2_damage%
-#  ... hasta top5
+#  ... up to top5
 #
-#  RANKING DEL JUGADOR EN EL EVENTO ACTUAL
-#  %polaroiddragon_my_damage%       → daño acumulado del jugador en el evento actual
-#  %polaroiddragon_my_rank%         → posición del jugador en el evento actual (o - si no participó)
+#  THE PLAYER'S RANK IN THE CURRENT EVENT
+#  %polaroiddragon_my_damage%       → the player's damage this event
+#  %polaroiddragon_my_rank%         → the player's position this event (or - if not taking part)
 #
-#  HALL OF FAME — histórico acumulado de todos los eventos
-#  %polaroiddragon_hall_1_name%     → jugador con más daño total histórico
-#  %polaroiddragon_hall_1_damage%   → daño total histórico posición 1
-#  %polaroiddragon_hall_1_events%   → nº de eventos en los que participó
-#  %polaroiddragon_hall_2_name%     → (ídem para 2, 3, 4, 5)
-#  ... hasta hall_5
+#  HALL OF FAME — all-time totals across every event
+#  %polaroiddragon_hall_1_name%     → player with the most all-time damage
+#  %polaroiddragon_hall_1_damage%   → all-time damage of 1st place
+#  %polaroiddragon_hall_1_events%   → number of events they took part in
+#  %polaroiddragon_hall_2_name%     → (same for 2, 3, 4, 5)
+#  ... up to hall_5
 #
-#  ESTADÍSTICAS DEL JUGADOR (históricas)
-#  %polaroiddragon_my_total_damage% → daño total acumulado en todos los eventos
-#  %polaroiddragon_my_events%       → nº de eventos en los que participó
+#  PLAYER STATISTICS (all-time)
+#  %polaroiddragon_my_total_damage% → total damage across every event
+#  %polaroiddragon_my_events%       → number of events they took part in
 #
 # ══════════════════════════════════════════════
 
-# ── IDIOMA ────────────────────────────────────
-# Archivo de textos que usa el plugin: lang/messages_<idioma>.yml
-# Incluidos: en (inglés, idioma base) y es (español).
-# Si una clave falta en tu idioma, se usa automáticamente la del inglés,
-# así que una traducción incompleta nunca deja mensajes en blanco.
-# Para añadir un idioma, copia lang/messages_en.yml a lang/messages_<codigo>.yml
-# y pon aquí ese código.
-language: es
+# ── LANGUAGE ──────────────────────────────────
+# The message file the plugin loads: lang/messages_<language>.yml
+# Bundled: en (English, the base language) and es (Spanish).
+# A key missing from your language falls back to English automatically,
+# so an incomplete translation never leaves a blank message.
+# To add a language, copy lang/messages_en.yml to lang/messages_<code>.yml
+# and put that code here.
+language: en
 
 dragon:
   world: "world_the_end"
   spawn-x: 0
   spawn-y: 100
   spawn-z: 0
-  # HP del dragón. Vanilla = 200.0
+  # The dragon's HP. Vanilla = 200.0
   health: 400.0
-  # Nombre visible del dragon. Acepta MiniMessage; el degradado es la identidad Polaroid.
-  name: "<b><gradient:#eb4b30:#f3842c:#f2c42f:#95d027>Dragon Ancestral</gradient></b>"
+  # The dragon's display name. Accepts MiniMessage; the gradient is the Polaroid identity.
+  name: "<b><gradient:#eb4b30:#f3842c:#f2c42f:#95d027>Ancestral Dragon</gradient></b>"
 
 event:
   auto-spawn: true
 
-  # Zona horaria para los horarios. Lista completa en:
+  # Timezone used for the schedule. Full list at:
   # https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
   timezone: "Europe/Madrid"
 
-  # Días y horas en los que spawna el dragón.
-  # Formato: DIA_EN_INGLES HH:mm (24h)
-  # Días válidos: MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY, SUNDAY
+  # Days and times the dragon spawns.
+  # Format: DAY HH:mm (24h)
+  # Valid days: MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY, SUNDAY
   schedule:
     - "FRIDAY 20:00"
     - "SATURDAY 18:00"
     - "SATURDAY 22:00"
     - "SUNDAY 18:00"
 
-  # Segundos de aviso antes del spawn
+  # Seconds of warning before the spawn
   countdown-seconds: 300
 
-  # Jugadores mínimos online para que el evento inicie.
-  # Si no hay suficientes jugadores, se pospone al siguiente horario.
+  # Minimum players online for the event to start.
+  # With fewer players, it is postponed to the next scheduled time.
   min-players: 5
 
-  # Minutos máximos que el dragón puede estar vivo sin morir.
-  # Si se alcanza este tiempo, se procesan las recompensas con quien haya participado
-  # y se reprograma el siguiente evento. 0 = desactivado.
+  # Maximum minutes the dragon may stay alive.
+  # When this is reached, rewards are paid to whoever took part and the next
+  # event is scheduled. 0 = disabled.
   timeout-minutes: 30
 
-  # Cuántas posiciones del top reciben recompensa de posición
+  # How many top places receive a position reward
   top-size: 5
 
 bossbar:
   enabled: true
-  # Colores: BLUE, GREEN, PINK, PURPLE, RED, WHITE, YELLOW
+  # Colors: BLUE, GREEN, PINK, PURPLE, RED, WHITE, YELLOW
   color: PURPLE
-  # Estilos: SOLID, SEGMENTED_6, SEGMENTED_10, SEGMENTED_12, SEGMENTED_20
+  # Styles: SOLID, SEGMENTED_6, SEGMENTED_10, SEGMENTED_12, SEGMENTED_20
   style: SEGMENTED_10
-  # {current} = HP actual, {max} = HP máximo
-  title: "<b><#289bd0>Dragón Ancestral</b> <#315a7a>| <#E9FDFB>{current} <#315a7a>/ <#E9FDFB>{max} HP"
+  # {current} = current HP, {max} = maximum HP
+  title: "<b><#289bd0>Ancestral Dragon</b> <#315a7a>| <#E9FDFB>{current} <#315a7a>/ <#E9FDFB>{max} HP"
 
 # ══════════════════════════════════════════════
-#  FASES DE NOTIFICACIÓN
-#  Cada fase tiene: chat, actionbar, title, sound
-#  El contenido es 100% configurable.
+#  NOTIFICATION PHASES
+#  Each phase has: chat, actionbar, title, sound
+#  The content is fully configurable.
 #
-#  Placeholders por fase:
-#    countdown → %remaining_time%   (ej. 4m 30s)
-#    spawn     → (ninguno adicional)
+#  Placeholders per phase:
+#    countdown → %remaining_time%   (e.g. 4m 30s)
+#    spawn     → (none extra)
 #    death     → %killer%
 #                %top1_name%  %top1_damage%
 #                %top2_name%  %top2_damage%
 #                %top3_name%  %top3_damage%
 #                %top4_name%  %top4_damage%
 #                %top5_name%  %top5_damage%
-#    timeout   → mismos que death (killer = "Nadie")
+#    timeout   → same as death (killer = "Nobody")
 # ══════════════════════════════════════════════
 phases:
 
@@ -123,11 +126,11 @@ phases:
         enabled: true
         content:
           - ''
-          - '<#315a7a>▬▬▬▬▬▬ <b><gradient:#eb4b30:#f3842c:#f2c42f:#95d027>DRAGON ANCESTRAL</gradient></b> <#315a7a>▬▬▬▬▬▬'
+          - '<#315a7a>▬▬▬▬▬▬ <b><gradient:#eb4b30:#f3842c:#f2c42f:#95d027>ANCESTRAL DRAGON</gradient></b> <#315a7a>▬▬▬▬▬▬'
           - ''
-          - '<#f2c42f> • <#E9FDFB>El Dragón Ancestral aparecerá en <#f2c42f>%remaining_time%'
-          - '<#f2c42f> • <#E9FDFB>Prepara tu mejor equipo y dirígete al <#f2c42f>End'
-          - '<#f2c42f> • <#E9FDFB>El jugador que más daño haga recibirá la <#f2c42f>mayor recompensa'
+          - '<#f2c42f> • <#E9FDFB>The Ancestral Dragon appears in <#f2c42f>%remaining_time%'
+          - '<#f2c42f> • <#E9FDFB>Bring your best gear and head to the <#f2c42f>End'
+          - '<#f2c42f> • <#E9FDFB>The player who deals the most damage gets the <#f2c42f>biggest reward'
           - ''
           - '<#315a7a>🀀 polaroid.studio'
           - ''
@@ -151,21 +154,21 @@ phases:
         enabled: true
         content:
           - ''
-          - '<#315a7a>▬▬▬ <b><gradient:#eb4b30:#f3842c:#f2c42f:#95d027>¡EL DRAGON ANCESTRAL!</gradient></b> <#315a7a>▬▬▬'
+          - '<#315a7a>▬▬▬ <b><gradient:#eb4b30:#f3842c:#f2c42f:#95d027>THE ANCESTRAL DRAGON!</gradient></b> <#315a7a>▬▬▬'
           - ''
-          - '<#f2c42f> • <#E9FDFB>El <#f2c42f>Dragón Ancestral <#E9FDFB>ha aparecido en el <#f2c42f>End'
-          - '<#f2c42f> • <#E9FDFB>Haz el <#f2c42f>mayor daño posible <#E9FDFB>para ganar recompensas'
-          - '<#f2c42f> • <#E9FDFB>Solo los <#f2c42f>5 mejores <#E9FDFB>dañadores recibirán premios'
+          - '<#f2c42f> • <#E9FDFB>The <#f2c42f>Ancestral Dragon <#E9FDFB>has appeared in the <#f2c42f>End'
+          - '<#f2c42f> • <#E9FDFB>Deal as <#f2c42f>much damage as you can <#E9FDFB>to earn rewards'
+          - '<#f2c42f> • <#E9FDFB>Only the <#f2c42f>top 5 <#E9FDFB>damagers receive prizes'
           - ''
           - '<#315a7a>🀀 polaroid.studio'
           - ''
       actionbar:
         enabled: true
-        content: '<#289bd0>✦ Dragón Ancestral <#315a7a>┇ <#E9FDFB>¡Ha aparecido en el End!'
+        content: '<#289bd0>✦ Ancestral Dragon <#315a7a>┇ <#E9FDFB>It has appeared in the End!'
       title:
         enabled: true
-        title: '<b><gradient:#eb4b30:#f3842c:#f2c42f:#95d027>✦ DRAGON ANCESTRAL ✦</gradient></b>'
-        subtitle: '<#E9FDFB>¡Dirígete al End y combate!'
+        title: '<b><gradient:#eb4b30:#f3842c:#f2c42f:#95d027>✦ ANCESTRAL DRAGON ✦</gradient></b>'
+        subtitle: '<#E9FDFB>Head to the End and fight!'
         fade-in: 10
         stay: 80
         fade-out: 20
@@ -179,18 +182,18 @@ phases:
         enabled: true
         content:
           - ''
-          - '<#315a7a>▬▬▬ <b><gradient:#eb4b30:#f3842c:#f2c42f:#95d027>¡DRAGON DERROTADO!</gradient></b> <#315a7a>▬▬▬'
+          - '<#315a7a>▬▬▬ <b><gradient:#eb4b30:#f3842c:#f2c42f:#95d027>DRAGON DEFEATED!</gradient></b> <#315a7a>▬▬▬'
           - ''
-          - '<#f2c42f> • <#f2c42f>%killer% <#E9FDFB>ha dado el golpe final'
+          - '<#f2c42f> • <#f2c42f>%killer% <#E9FDFB>landed the final blow'
           - ''
-          - '<#289bd0>ᴛᴏᴘ ᴅᴀÑᴀᴅᴏʀᴇs'
-          - '<#f2c42f> • <b>1º</b> <#E9FDFB>%top1_name% <#315a7a>| <#289bd0>%top1_damage% dmg'
-          - '<#f2c42f> • <b>2º</b> <#E9FDFB>%top2_name% <#315a7a>| <#289bd0>%top2_damage% dmg'
-          - '<#f2c42f> • <b>3º</b> <#E9FDFB>%top3_name% <#315a7a>| <#289bd0>%top3_damage% dmg'
-          - '<#f2c42f> • <b>4º</b> <#E9FDFB>%top4_name% <#315a7a>| <#289bd0>%top4_damage% dmg'
-          - '<#f2c42f> • <b>5º</b> <#E9FDFB>%top5_name% <#315a7a>| <#289bd0>%top5_damage% dmg'
+          - '<#289bd0>ᴛᴏᴘ ᴅᴀᴍᴀɢᴇʀs'
+          - '<#f2c42f> • <b>1sᴛ</b> <#E9FDFB>%top1_name% <#315a7a>| <#289bd0>%top1_damage% dmg'
+          - '<#f2c42f> • <b>2ɴᴅ</b> <#E9FDFB>%top2_name% <#315a7a>| <#289bd0>%top2_damage% dmg'
+          - '<#f2c42f> • <b>3ʀᴅ</b> <#E9FDFB>%top3_name% <#315a7a>| <#289bd0>%top3_damage% dmg'
+          - '<#f2c42f> • <b>4ᴛʜ</b> <#E9FDFB>%top4_name% <#315a7a>| <#289bd0>%top4_damage% dmg'
+          - '<#f2c42f> • <b>5ᴛʜ</b> <#E9FDFB>%top5_name% <#315a7a>| <#289bd0>%top5_damage% dmg'
           - ''
-          - '<#95d027> • Los premios se han entregado automáticamente'
+          - '<#95d027> • Prizes have been paid out automatically'
           - ''
           - '<#315a7a>🀀 polaroid.studio'
           - ''
@@ -199,8 +202,8 @@ phases:
         content: ''
       title:
         enabled: true
-        title: '<b><gradient:#eb4b30:#f3842c:#f2c42f:#95d027>✦ DRAGON DERROTADO ✦</gradient></b>'
-        subtitle: '<#95d027>¡Los premios han sido entregados!'
+        title: '<b><gradient:#eb4b30:#f3842c:#f2c42f:#95d027>✦ DRAGON DEFEATED ✦</gradient></b>'
+        subtitle: '<#95d027>The prizes have been paid out!'
         fade-in: 10
         stay: 80
         fade-out: 20
@@ -208,22 +211,22 @@ phases:
         enabled: true
         content: ENTITY_ENDER_DRAGON_DEATH
 
-  # Notificación cuando el dragón muere por timeout (tiempo agotado)
+  # Notification for when the dragon despawns because the timeout ran out
   timeout:
     notification:
       chat:
         enabled: true
         content:
           - ''
-          - '<#315a7a>▬▬▬ <b><gradient:#eb4b30:#f3842c:#f2c42f:#95d027>DRAGON DESAPARECIDO</gradient></b> <#315a7a>▬▬▬'
+          - '<#315a7a>▬▬▬ <b><gradient:#eb4b30:#f3842c:#f2c42f:#95d027>DRAGON VANISHED</gradient></b> <#315a7a>▬▬▬'
           - ''
-          - '<#f2c42f> • <#E9FDFB>El Dragón Ancestral ha <#f2c42f>desaparecido <#E9FDFB>por falta de combatientes'
-          - '<#f2c42f> • <#E9FDFB>Las recompensas se han entregado a los participantes'
+          - '<#f2c42f> • <#E9FDFB>The Ancestral Dragon has <#f2c42f>vanished <#E9FDFB>for lack of challengers'
+          - '<#f2c42f> • <#E9FDFB>Rewards have been paid to everyone who took part'
           - ''
-          - '<#289bd0>ᴛᴏᴘ ᴅᴀÑᴀᴅᴏʀᴇs'
-          - '<#f2c42f> • <b>1º</b> <#E9FDFB>%top1_name% <#315a7a>| <#289bd0>%top1_damage% dmg'
-          - '<#f2c42f> • <b>2º</b> <#E9FDFB>%top2_name% <#315a7a>| <#289bd0>%top2_damage% dmg'
-          - '<#f2c42f> • <b>3º</b> <#E9FDFB>%top3_name% <#315a7a>| <#289bd0>%top3_damage% dmg'
+          - '<#289bd0>ᴛᴏᴘ ᴅᴀᴍᴀɢᴇʀs'
+          - '<#f2c42f> • <b>1sᴛ</b> <#E9FDFB>%top1_name% <#315a7a>| <#289bd0>%top1_damage% dmg'
+          - '<#f2c42f> • <b>2ɴᴅ</b> <#E9FDFB>%top2_name% <#315a7a>| <#289bd0>%top2_damage% dmg'
+          - '<#f2c42f> • <b>3ʀᴅ</b> <#E9FDFB>%top3_name% <#315a7a>| <#289bd0>%top3_damage% dmg'
           - ''
           - '<#315a7a>🀀 polaroid.studio'
           - ''
@@ -242,22 +245,22 @@ phases:
         content: ENTITY_ENDER_DRAGON_DEATH
 
 # ══════════════════════════════════════════════
-#  RECOMPENSAS
-#  {player} = nombre del jugador
+#  REWARDS
+#  {player} = the player's name
 #
-#  Lógica:
-#  - positions   → top N jugadores con más daño (según top-size)
-#  - kill-bonus  → bono adicional al jugador que dio el golpe final
-#  - participation → jugadores fuera del top que superaron min-damage
+#  How it works:
+#  - positions     → the top N damagers (as set by top-size)
+#  - kill-bonus    → an extra bonus for whoever landed the final blow
+#  - participation → players outside the top who cleared min-damage
 #
-#  money    → cantidad entregada vía Vault si está disponible (funciona offline).
-#  commands → comandos extra opcionales ejecutados por consola (lista vacía = ninguno).
+#  money    → amount paid through Vault when available (works offline too).
+#  commands → optional extra commands run from console (empty list = none).
 #
-#  min-damage → daño mínimo para ser elegible a recompensa de participation.
-#               Los jugadores del top siempre reciben su recompensa sin importar este valor.
+#  min-damage → the minimum damage to qualify for the participation reward.
+#               Top players always receive theirs regardless of this value.
 # ══════════════════════════════════════════════
 rewards:
-  # Daño mínimo para recibir la recompensa de participación (no afecta al top)
+  # Minimum damage to receive the participation reward (does not affect the top)
   min-damage: 10.0
 
   positions:

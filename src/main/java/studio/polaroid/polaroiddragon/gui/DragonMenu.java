@@ -48,7 +48,7 @@ public class DragonMenu {
     }
 
     // ─────────────────────────────────────────────
-    //  NAVEGACIÓN
+    //  NAVIGATION
     // ─────────────────────────────────────────────
 
     public DragonMenuHolder.View navTarget(DragonMenuHolder.View current, int slot) {
@@ -69,7 +69,7 @@ public class DragonMenu {
     }
 
     // ─────────────────────────────────────────────
-    //  CONSTRUCCIÓN DEL INVENTARIO
+    //  INVENTORY BUILD
     // ─────────────────────────────────────────────
 
     public Inventory build(DragonMenuHolder.View view, Player viewer) {
@@ -147,7 +147,7 @@ public class DragonMenu {
         safeSet(inv, menuConfig.getInfoStatusSlot(), simpleItem(mat, name, lore.toArray(new String[0])));
     }
 
-    /** Barra de 20 caracteres: &a (vida actual) + &7 (vida faltante). */
+    /** 20-character bar: &a (current health) + &7 (missing health). */
     private static String buildHealthBar(double current, double max) {
         if (max <= 0) max = 1;
         int total = 20;
@@ -157,7 +157,7 @@ public class DragonMenu {
     }
 
     // ─────────────────────────────────────────────
-    //  TOP EVENTO ACTUAL
+    //  CURRENT EVENT TOP
     // ─────────────────────────────────────────────
 
     private void buildTopEvent(Inventory inv, Player viewer) {
@@ -246,7 +246,7 @@ public class DragonMenu {
     }
 
     // ─────────────────────────────────────────────
-    //  NAVEGACIÓN (ITEMS)
+    //  NAVIGATION (ITEMS)
     // ─────────────────────────────────────────────
 
     private void addNavigation(Inventory inv, DragonMenuHolder.View view) {
@@ -279,7 +279,7 @@ public class DragonMenu {
     }
 
     // ─────────────────────────────────────────────
-    //  RELLENO DE SLOTS VACÍOS
+    //  EMPTY SLOT FILLER
     // ─────────────────────────────────────────────
 
     private void fillEmpty(Inventory inv, DragonMenuHolder.View view) {
