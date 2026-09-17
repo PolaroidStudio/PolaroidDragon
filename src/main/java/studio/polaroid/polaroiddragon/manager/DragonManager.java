@@ -11,6 +11,7 @@ import org.bukkit.boss.BossBar;
 import org.bukkit.entity.EnderDragon;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
@@ -18,7 +19,15 @@ import java.util.*;
 
 public class DragonManager {
 
+    /**
+     * Persistent tag written on every dragon this plugin spawns. Only a dragon
+     * carrying it may be adopted on startup, so the vanilla End dragon (or any
+     * dragon spawned by another plugin) can never hijack the event scheduler.
+     */
+    private static final String EVENT_DRAGON_TAG = "event_dragon";
+
     private final PolaroidDragon plugin;
+    private final NamespacedKey eventDragonKey;
     private final DamageTracker damageTracker;
     private final ScheduleManager scheduleManager;
     private final StatsManager statsManager;
@@ -40,6 +49,7 @@ public class DragonManager {
 
     public DragonManager(PolaroidDragon plugin, StatsManager statsManager, PendingRewardManager pendingRewardManager, EconomyManager economyManager, DiscordWebhookManager discordWebhookManager) {
         this.plugin = plugin;
+        this.eventDragonKey = new NamespacedKey(plugin, EVENT_DRAGON_TAG);
         this.statsManager = statsManager;
         this.pendingRewardManager = pendingRewardManager;
         this.economyManager = economyManager;
@@ -52,19 +62,33 @@ public class DragonManager {
     //  SCAN AL INICIAR
     // ─────────────────────────────────────────────
 
+    /**
+     * Adopts a previously spawned event dragon after a restart.
+     *
+     * <p>Only a dragon carrying this plugin's persistent tag is adopted. Adopting
+     * any {@link EnderDragon} would claim the vanilla End dragon and leave
+     * {@code eventActive} stuck at true, which permanently suppresses the
+     * scheduler.
+     */
     public void scanExistingDragon() {
         World world = getConfiguredWorld();
         if (world == null) return;
 
-        for (Entity entity : world.getEntitiesByClass(EnderDragon.class)) {
-            EnderDragon dragon = (EnderDragon) entity;
+        for (EnderDragon dragon : world.getEntitiesByClass(EnderDragon.class)) {
+            if (!isTaggedEventDragon(dragon)) continue;
             activeDragonUUID = dragon.getUniqueId();
             eventActive = true;
             setupBossBar(dragon);
             scheduleTimeout();
-            plugin.getLogger().info("Dragón existente detectado tras reinicio (UUID: " + activeDragonUUID + "). Evento reanudado.");
+            plugin.getLogger().info("Tagged event dragon found after restart (UUID: "
+                    + activeDragonUUID + "). Event resumed.");
             return;
         }
+    }
+
+    /** True when the entity carries the persistent tag written by {@link #spawnDragon()}. */
+    private boolean isTaggedEventDragon(Entity entity) {
+        return entity.getPersistentDataContainer().has(eventDragonKey, PersistentDataType.BYTE);
     }
 
     // ─────────────────────────────────────────────
@@ -195,6 +219,9 @@ public class DragonManager {
             String rawName = plugin.getConfig().getString("dragon.name", "&5&lDragón Ancestral");
             d.setCustomName(ColorUtil.parse(rawName));
             d.setCustomNameVisible(true);
+            // Written before the entity is added to the world so a restart can
+            // tell this dragon apart from the vanilla End dragon.
+            d.getPersistentDataContainer().set(eventDragonKey, PersistentDataType.BYTE, (byte) 1);
         });
 
         activeDragonUUID = dragon.getUniqueId();
@@ -423,7 +450,19 @@ public class DragonManager {
     //  STOP
     // ─────────────────────────────────────────────
 
+    /**
+     * Stops the running event and removes the dragon entity.
+     *
+     * <p>Leaving the entity alive would make it untracked yet still tagged, so
+     * the next startup scan would re-adopt it and resume a dead event.
+     */
     public void stopEvent() {
+        // Resolve the entity before the UUID is cleared, otherwise it is unreachable.
+        EnderDragon dragon = getActiveDragon();
+        if (dragon != null) {
+            dragon.remove();
+        }
+
         eventActive      = false;
         countdownActive  = false;
         countdownSeconds = 0;
@@ -434,8 +473,16 @@ public class DragonManager {
         cancelTimeout();
     }
 
+    /**
+     * Shutdown path. Cancels every scheduled task and clears the boss bar, but
+     * deliberately leaves the dragon entity and the event flags alone: the
+     * tagged dragon is what {@link #scanExistingDragon()} adopts on the next
+     * startup to resume the event.
+     */
     public void cancelAll() {
-        stopEvent();
+        removeBossBar();
+        cancelCountdown();
+        cancelTimeout();
         cancelScheduleTask();
     }
 

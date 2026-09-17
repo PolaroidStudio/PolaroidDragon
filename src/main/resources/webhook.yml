@@ -1,5 +1,5 @@
 # ══════════════════════════════════════════════
-#        HildaDragon — Webhook de Discord
+#      PolaroidDragon — Webhook de Discord
 # ══════════════════════════════════════════════
 #
 # Anuncia el spawn y la muerte del Dragón Ancestral en un canal de Discord.
@@ -17,7 +17,7 @@
 #  %top4_name%    %top4_damage%
 #  %top5_name%    %top5_damage%
 #
-# El color del embed se indica en hexadecimal, ej: "#AA33FF"
+# El color del embed se indica en hexadecimal, ej: "#289bd0"
 # El título y la descripción son texto plano de Discord (admite **negrita**, *cursiva*, etc.)
 # — no usar códigos de color de Minecraft (& o §) aquí, Discord no los interpreta.
 # ══════════════════════════════════════════════
@@ -35,7 +35,7 @@ spawn:
   embed:
     title: "✦ ¡El Dragón Ancestral ha despertado!"
     description: "El Dragón Ancestral ha aparecido en el End. ¡Únete a la batalla!"
-    color: "#AA33FF"
+    color: "#289bd0"
 
 death:
   enabled: true
@@ -50,7 +50,7 @@ death:
       🥉 %top3_name% — %top3_damage% dmg
       4️⃣ %top4_name% — %top4_damage% dmg
       5️⃣ %top5_name% — %top5_damage% dmg
-    color: "#AA33FF"
+    color: "#289bd0"
 
 timeout:
   enabled: false
@@ -63,4 +63,4 @@ timeout:
       🥇 %top1_name% — %top1_damage% dmg
       🥈 %top2_name% — %top2_damage% dmg
       🥉 %top3_name% — %top3_damage% dmg
-    color: "#AA33FF"
+    color: "#289bd0"

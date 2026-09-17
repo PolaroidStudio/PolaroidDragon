@@ -3,6 +3,8 @@ package studio.polaroid.polaroiddragon;
 import studio.polaroid.polaroiddragon.command.DragonCommand;
 import studio.polaroid.polaroiddragon.gui.DragonMenu;
 import studio.polaroid.polaroiddragon.gui.DragonMenuListener;
+import studio.polaroid.polaroiddragon.gui.MenuItemCleanupListener;
+import studio.polaroid.polaroiddragon.gui.MenuItemMarker;
 import studio.polaroid.polaroiddragon.listener.DragonDamageListener;
 import studio.polaroid.polaroiddragon.listener.DragonDeathListener;
 import studio.polaroid.polaroiddragon.listener.PlayerJoinListener;
@@ -14,6 +16,7 @@ import studio.polaroid.polaroiddragon.manager.MessageManager;
 import studio.polaroid.polaroiddragon.manager.PendingRewardManager;
 import studio.polaroid.polaroiddragon.manager.StatsManager;
 import studio.polaroid.polaroiddragon.placeholder.DragonPlaceholder;
+import org.bukkit.command.PluginCommand;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class PolaroidDragon extends JavaPlugin {
@@ -31,8 +34,10 @@ public class PolaroidDragon extends JavaPlugin {
         messageManager = new MessageManager(this);
         menuConfig = new MenuConfig(this);
 
-        // Stats debe inicializarse antes que DragonManager
+        // Stats must be constructed before DragonManager. The database work
+        // itself runs asynchronously so JDBC never blocks the server thread.
         statsManager = new StatsManager(this);
+        statsManager.initAsync();
         PendingRewardManager pendingRewardManager = new PendingRewardManager(this);
         EconomyManager economyManager = new EconomyManager(this);
         DiscordWebhookManager discordWebhookManager = new DiscordWebhookManager(this);
@@ -43,12 +48,24 @@ public class PolaroidDragon extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new DragonDeathListener(dragonManager), this);
         getServer().getPluginManager().registerEvents(new PlayerJoinListener(dragonManager, pendingRewardManager), this);
 
-        // Menú GUI
-        DragonMenu dragonMenu = new DragonMenu(dragonManager, statsManager, messageManager, menuConfig);
-        getServer().getPluginManager().registerEvents(new DragonMenuListener(dragonMenu), this);
+        // GUI menus
+        MenuItemMarker menuItemMarker = new MenuItemMarker(this);
+        DragonMenu dragonMenu = new DragonMenu(dragonManager, statsManager, messageManager, menuConfig, menuItemMarker);
+        getServer().getPluginManager().registerEvents(
+                new DragonMenuListener(this, dragonMenu, menuItemMarker), this);
+        getServer().getPluginManager().registerEvents(
+                new MenuItemCleanupListener(this, menuItemMarker), this);
 
-        // Comando
-        getCommand("polaroiddragon").setExecutor(new DragonCommand(this, dragonManager, statsManager, dragonMenu));
+        // Command
+        PluginCommand command = getCommand("polaroiddragon");
+        if (command == null) {
+            getLogger().severe("The command 'polaroiddragon' is missing from plugin.yml; "
+                    + "commands and tab completion are unavailable.");
+        } else {
+            DragonCommand dragonCommand = new DragonCommand(this, dragonManager, statsManager, dragonMenu);
+            command.setExecutor(dragonCommand);
+            command.setTabCompleter(dragonCommand);
+        }
 
         // PlaceholderAPI
         if (getServer().getPluginManager().getPlugin("PlaceholderAPI") != null) {
@@ -69,7 +86,9 @@ public class PolaroidDragon extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        dragonManager.cancelAll();
+        if (dragonManager != null) {
+            dragonManager.cancelAll();
+        }
         if (statsManager != null) {
             statsManager.close();
         }

@@ -1,0 +1,213 @@
+# ══════════════════════════════════════════════
+#           PolaroidDragon — Messages (English)
+# ══════════════════════════════════════════════
+#
+# This is the BASE language file. Every other language falls back to it: if a key is
+# missing from lang/messages_es.yml, the English text below is used instead of a raw key.
+# Do not delete keys from this file.
+#
+# To translate, copy this file to lang/messages_<code>.yml and set `language:` in config.yml.
+#
+# ── FORMAT ────────────────────────────────────
+# All text is MiniMessage (https://docs.advntr.dev/minimessage/format.html).
+# Legacy &-codes and &#RRGGBB still render, but write new text with MiniMessage tags.
+#
+# A key is EITHER a plain string:
+#     my-key: "<#95d027>Done."
+#
+# ...OR a section, when the message needs a tooltip or a click action:
+#     my-key:
+#       text:   "<#E9FDFB>Click here"          # the line itself
+#       hover:  "<#315a7a>Opens the ranking"   # tooltip shown on mouse-over
+#       click:  "[RUN_COMMAND] /pd top"        # what a click does
+#       prefix: true                           # prepend the banner (see below)
+#
+# ── CLICK TOKENS ──────────────────────────────
+#   [NONE]                      do nothing
+#   [RUN_COMMAND] /command      run the command as the player
+#   [SUGGEST_COMMAND] /command  put the command in the player's chat box
+#   [OPEN_URL] https://...      open a link
+#   [COPY] some text            copy to clipboard
+#
+# ── THE BANNER ────────────────────────────────
+# `prefix:` below is the plugin banner. NEVER write it inside another message's text —
+# add `prefix: true` to a key instead and the plugin composes the two.
+# Rule of thumb: standalone results carry the banner; rows inside a list never do.
+#
+# ── COLOUR ROLES (Polaroid palette) ───────────
+#   #eb4b30  error     refusals, failures
+#   #95d027  success   confirmations, "click to" prompts
+#   #f2c42f  warning   cautions, chrome buttons, highlighted values
+#   #E9FDFB  body      ordinary sentences
+#   #289bd0  accent    values worth looking at, inside menus
+#   #315a7a  chrome    dividers, bars, empty states
+#   #b6c1ec  a value quoted inside a menu's lore
+#   #6f6085  counts in parentheses next to a title
+# Never colour something red unless it is an error.
+#
+# ══════════════════════════════════════════════
+
+# The plugin banner. POLAROID's gradient is the brand and should not be changed;
+# the plugin name after it is in the accent colour.
+prefix: "<b><#eb4b30>PO</#eb4b30><#f3842c>LA</#f3842c><#f2c42f>RO</#f2c42f><#95d027>ID</#95d027> <#289bd0>DRAGON</#289bd0> <#315a7a>┇</b> "
+
+general:
+  # Shown when a player runs an admin subcommand without the permission.
+  no-permission:
+    text: "<#eb4b30>You do not have permission to do that."
+    prefix: true
+  # Shown to whoever runs /polaroiddragon reload.
+  config-reloaded:
+    text: "<#95d027>Configuration reloaded."
+    prefix: true
+  # Used as %killer% when the dragon despawns on timeout and nobody landed the final blow.
+  # Plain text — it is substituted inside other messages, so it carries no colour of its own.
+  no-killer: "Nobody"
+  # Shown on join when rewards from an earlier event could not be delivered at the time.
+  pending-rewards-delivered:
+    text: "<#95d027>You received pending rewards from an earlier event."
+    prefix: true
+
+# GUI navigation buttons. Menu titles, slots and materials live in menus.yml.
+gui:
+  nav-top: "<#f3842c>ᴇᴠᴇɴᴛ ᴛᴏᴘ"
+  nav-hall-of-fame: "<#cd80f7>ʜᴀʟʟ ᴏғ ғᴀᴍᴇ"
+  nav-info: "<#f2c42f>ʙᴀᴄᴋ"
+  # Lore appended under each navigation button. The blank line separates state from action.
+  nav-top-lore:
+    - ""
+    - "<#95d027>▸ ᴄʟɪᴄᴋ ᴛᴏ ᴏᴘᴇɴ ᴛʜᴇ ᴇᴠᴇɴᴛ ᴛᴏᴘ"
+  nav-hall-of-fame-lore:
+    - ""
+    - "<#95d027>▸ ᴄʟɪᴄᴋ ᴛᴏ ᴏᴘᴇɴ ᴛʜᴇ ʜᴀʟʟ ᴏғ ғᴀᴍᴇ"
+  nav-info-lore:
+    - ""
+    - "<#95d027>▸ ᴄʟɪᴄᴋ ᴛᴏ ɢᴏ ʙᴀᴄᴋ"
+
+# Vault money rewards.
+rewards:
+  # {amount} is already formatted by the economy plugin (e.g. $5,000.00).
+  money-received:
+    text: "<#E9FDFB>You received <#f2c42f>{amount}<#E9FDFB> for the Ancient Dragon event."
+    prefix: true
+
+event:
+  already-active:
+    text: "<#eb4b30>The dragon is already active."
+    prefix: true
+  countdown-in-progress:
+    text: "<#eb4b30>The countdown is already running."
+    prefix: true
+  no-event-or-countdown:
+    text: "<#eb4b30>There is no active event or countdown."
+    prefix: true
+  countdown-started:
+    text: "<#95d027>Countdown started."
+    prefix: true
+  dragon-spawned:
+    text: "<#95d027>Dragon spawned."
+    prefix: true
+  event-stopped:
+    text: "<#95d027>Event stopped."
+    prefix: true
+
+# /polaroiddragon info — also used as the item name and lore of the status item in the GUI.
+info:
+  title:
+    text: "<#315a7a>▬▬▬▬▬▬▬▬▬▬▬▬ <#E9FDFB>sᴛᴀᴛᴜs <#315a7a>▬▬▬▬▬▬▬▬▬▬▬▬"
+  status-active: "<#95d027>ᴅʀᴀɢᴏɴ ᴀʟɪᴠᴇ"
+  # {current}, {max}
+  hp: "<#E9FDFB> • ʜᴘ: <#289bd0>{current} <#315a7a>/ <#289bd0>{max}"
+  # {count}
+  participants: "<#E9FDFB> • ᴘᴀʀᴛɪᴄɪᴘᴀɴᴛs: <#289bd0>{count}"
+  status-countdown: "<#f2c42f>ᴄᴏᴜɴᴛᴅᴏᴡɴ ʀᴜɴɴɪɴɢ"
+  # {time}
+  time-remaining: "<#E9FDFB> • ᴛɪᴍᴇ ʟᴇғᴛ: <#289bd0>{time}"
+  status-inactive: "<#315a7a>ɴᴏ ᴇᴠᴇɴᴛ"
+  # {next}, {time}
+  next-event: "<#E9FDFB> • ɴᴇxᴛ ᴇᴠᴇɴᴛ: <#289bd0>{next} <#6f6085>(in {time})"
+
+# /polaroiddragon top evento — the current event's damage ranking.
+top:
+  title:
+    text: "<#315a7a>▬▬▬▬▬▬▬▬ <#E9FDFB>ᴇᴠᴇɴᴛ ᴛᴏᴘ <#315a7a>▬▬▬▬▬▬▬▬"
+  no-event-active: "<#315a7a>No event is running right now."
+  no-damage-yet: "<#315a7a>Nobody has damaged the dragon yet."
+  # {medal}, {player}, {damage}
+  entry: "<#f2c42f>▸ {medal} <#E9FDFB>{player} <#315a7a>| <#289bd0>{damage} dmg"
+  # {rank}, {damage}
+  my-position: "<#f2c42f>▸ <#E9FDFB>Your position: <#f2c42f>#{rank} <#315a7a>| <#289bd0>{damage} dmg"
+
+# /polaroiddragon top — the all-time ranking.
+hall-of-fame:
+  title:
+    text: "<#315a7a>▬▬▬▬▬▬ <#E9FDFB>ʜᴀʟʟ ᴏғ ғᴀᴍᴇ <#315a7a>▬▬▬▬▬▬"
+  no-stats: "<#315a7a>No statistics recorded yet."
+  # {medal}, {player}, {damage}, {events}
+  entry: "<#f2c42f>▸ {medal} <#E9FDFB>{player} <#315a7a>| <#289bd0>{damage} dmg <#315a7a>| <#6f6085>{events} events"
+  # {damage}, {events}
+  my-stats: "<#f2c42f>▸ <#E9FDFB>Your stats: <#289bd0>{damage} dmg <#315a7a>| <#6f6085>{events} events"
+
+# Medals shown next to each ranking position.
+medals:
+  positions:
+    - "<#f2c42f><b>1sᴛ"
+    - "<#E9FDFB><b>2ɴᴅ"
+    - "<#f3842c><b>3ʀᴅ"
+    - "<#315a7a><b>4ᴛʜ"
+    - "<#315a7a><b>5ᴛʜ"
+  # {position} — used from the 6th place onwards.
+  fallback: "<#315a7a>{position}ᴛʜ"
+
+# /polaroiddragon placeholders — the PlaceholderAPI reference.
+placeholders-help:
+  title:
+    text: "<#315a7a>▬▬▬▬▬▬ <#E9FDFB>ᴘʟᴀᴄᴇʜᴏʟᴅᴇʀs <#315a7a>▬▬▬▬▬▬"
+  lines:
+    - ""
+    - "<#289bd0>ᴄᴜʀʀᴇɴᴛ ᴇᴠᴇɴᴛ"
+    - "<#f2c42f> • <#E9FDFB>%polaroiddragon_active%          <#315a7a>→ <#b6c1ec>true / false"
+    - "<#f2c42f> • <#E9FDFB>%polaroiddragon_countdown%       <#315a7a>→ <#b6c1ec>countdown time left (e.g. 4m 30s)"
+    - "<#f2c42f> • <#E9FDFB>%polaroiddragon_hp%              <#315a7a>→ <#b6c1ec>the dragon's current HP"
+    - "<#f2c42f> • <#E9FDFB>%polaroiddragon_hp_max%          <#315a7a>→ <#b6c1ec>the dragon's maximum HP"
+    - "<#f2c42f> • <#E9FDFB>%polaroiddragon_participants%    <#315a7a>→ <#b6c1ec>players who damaged the dragon"
+    - ""
+    - "<#289bd0>ɴᴇxᴛ ᴇᴠᴇɴᴛ"
+    - "<#f2c42f> • <#E9FDFB>%polaroiddragon_next%            <#315a7a>→ <#b6c1ec>time left with seconds (e.g. 1d 6h 30m 15s)"
+    - "<#f2c42f> • <#E9FDFB>%polaroiddragon_next_short%      <#315a7a>→ <#b6c1ec>time left without seconds (e.g. 1d 6h 30m)"
+    - "<#f2c42f> • <#E9FDFB>%polaroiddragon_next_time%       <#315a7a>→ <#b6c1ec>exact time of day (e.g. 18:00)"
+    - "<#f2c42f> • <#E9FDFB>%polaroiddragon_next_day%        <#315a7a>→ <#b6c1ec>day name (e.g. Saturday)"
+    - "<#f2c42f> • <#E9FDFB>%polaroiddragon_next_full%       <#315a7a>→ <#b6c1ec>day and time (e.g. Saturday 18:00)"
+    - ""
+    - "<#289bd0>ᴄᴜʀʀᴇɴᴛ ᴇᴠᴇɴᴛ ᴛᴏᴘ <#6f6085>(resets when the dragon dies)"
+    - "<#f2c42f> • <#E9FDFB>%polaroiddragon_top1_name%       <#315a7a>→ <#b6c1ec>player in position 1"
+    - "<#f2c42f> • <#E9FDFB>%polaroiddragon_top1_damage%     <#315a7a>→ <#b6c1ec>damage in position 1"
+    - "<#f2c42f> • <#315a7a><i>...up to top5_name / top5_damage"
+    - ""
+    - "<#289bd0>ᴘʟᴀʏᴇʀ — ᴄᴜʀʀᴇɴᴛ ᴇᴠᴇɴᴛ"
+    - "<#f2c42f> • <#E9FDFB>%polaroiddragon_my_damage%       <#315a7a>→ <#b6c1ec>damage dealt in this event"
+    - "<#f2c42f> • <#E9FDFB>%polaroiddragon_my_rank%         <#315a7a>→ <#b6c1ec>position in this event (- if not participating)"
+    - ""
+    - "<#289bd0>ʜᴀʟʟ ᴏғ ғᴀᴍᴇ <#6f6085>(all-time totals)"
+    - "<#f2c42f> • <#E9FDFB>%polaroiddragon_hall_1_name%     <#315a7a>→ <#b6c1ec>all-time player in position 1"
+    - "<#f2c42f> • <#E9FDFB>%polaroiddragon_hall_1_damage%   <#315a7a>→ <#b6c1ec>all-time damage in position 1"
+    - "<#f2c42f> • <#E9FDFB>%polaroiddragon_hall_1_events%   <#315a7a>→ <#b6c1ec>events joined by position 1"
+    - "<#f2c42f> • <#315a7a><i>...up to hall_5_name / hall_5_damage / hall_5_events"
+    - ""
+    - "<#289bd0>ᴘʟᴀʏᴇʀ — ᴀʟʟ ᴛɪᴍᴇ"
+    - "<#f2c42f> • <#E9FDFB>%polaroiddragon_my_total_damage% <#315a7a>→ <#b6c1ec>damage dealt across every event"
+    - "<#f2c42f> • <#E9FDFB>%polaroiddragon_my_events%       <#315a7a>→ <#b6c1ec>number of events joined"
+
+# /polaroiddragon with no arguments, or an unknown argument.
+help:
+  title:
+    text: "<#315a7a>▬▬▬▬▬▬▬▬▬ <#E9FDFB>ᴄᴏᴍᴍᴀɴᴅs <#315a7a>▬▬▬▬▬▬▬▬▬"
+  lines:
+    - "<#f2c42f>▸ <#E9FDFB>/polaroiddragon start        <#315a7a>— <#b6c1ec>start the countdown"
+    - "<#f2c42f>▸ <#E9FDFB>/polaroiddragon spawn        <#315a7a>— <#b6c1ec>spawn the dragon immediately"
+    - "<#f2c42f>▸ <#E9FDFB>/polaroiddragon stop         <#315a7a>— <#b6c1ec>stop the event"
+    - "<#f2c42f>▸ <#E9FDFB>/polaroiddragon top          <#315a7a>— <#b6c1ec>all-time Hall of Fame"
+    - "<#f2c42f>▸ <#E9FDFB>/polaroiddragon top evento   <#315a7a>— <#b6c1ec>current event top"
+    - "<#f2c42f>▸ <#E9FDFB>/polaroiddragon info         <#315a7a>— <#b6c1ec>event status"
+    - "<#f2c42f>▸ <#E9FDFB>/polaroiddragon placeholders <#315a7a>— <#b6c1ec>list every placeholder"
+    - "<#f2c42f>▸ <#E9FDFB>/polaroiddragon reload       <#315a7a>— <#b6c1ec>reload the configuration"

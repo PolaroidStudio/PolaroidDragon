@@ -16,6 +16,12 @@ public class StatsManager {
     private final PolaroidDragon plugin;
     private final DatabaseManager db;
 
+    /** True once the async startup load has finished. Reads before that see an empty ranking. */
+    private volatile boolean loaded = false;
+
+    /** Upper bound on how long server shutdown waits for the final flush. */
+    private static final long SHUTDOWN_TIMEOUT_MILLIS = 10_000L;
+
     // Totales acumulados por jugador — lectura/escritura desde hilo principal Y async (PlaceholderAPI)
     private final Map<UUID, PlayerStats> totals = new ConcurrentHashMap<>();
 
@@ -28,24 +34,42 @@ public class StatsManager {
     public StatsManager(PolaroidDragon plugin) {
         this.plugin = plugin;
         this.db = new DatabaseManager(plugin);
+    }
 
-        try {
-            db.connect();
-        } catch (SQLException e) {
-            plugin.getLogger().severe("No se pudo conectar a la base de datos de estadísticas: " + e.getMessage());
-        }
+    /**
+     * Opens the pool and loads the Hall of Fame off the main thread.
+     *
+     * <p>JDBC is blocking and neither the SQLite file nor a remote MySQL host
+     * answers within a tick budget, so none of this may run on the server
+     * thread. Until the load finishes, queries simply report empty stats.
+     */
+    public void initAsync() {
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            try {
+                db.connect();
+            } catch (SQLException e) {
+                plugin.getLogger().severe("Could not connect to the statistics database: " + e.getMessage());
+                return;
+            }
 
-        List<PlayerStats> loaded = db.loadAll();
-        if (loaded.isEmpty()) {
-            loaded = maybeMigrateFromYaml();
-        }
+            List<PlayerStats> rows = db.loadAll();
+            if (rows.isEmpty()) {
+                rows = maybeMigrateFromYaml();
+            }
 
-        for (PlayerStats ps : loaded) {
-            totals.put(ps.getUuid(), ps);
-        }
-        rebuildCache();
+            for (PlayerStats ps : rows) {
+                totals.put(ps.getUuid(), ps);
+            }
+            rebuildCache();
+            loaded = true;
 
-        plugin.getLogger().info("Estadísticas cargadas desde la base de datos (" + totals.size() + " jugadores).");
+            plugin.getLogger().info("Statistics loaded from the database (" + totals.size() + " players).");
+        });
+    }
+
+    /** True once the startup load finished. */
+    public boolean isLoaded() {
+        return loaded;
     }
 
     // ─────────────────────────────────────────────
@@ -160,13 +184,35 @@ public class StatsManager {
     //  CIERRE
     // ─────────────────────────────────────────────
 
-    /** Persiste cualquier delta pendiente de forma síncrona y cierra la conexión a la base de datos. */
+    /**
+     * Final flush plus pool shutdown, on a worker thread bounded by a timeout.
+     *
+     * <p>Bukkit kills its async scheduler before {@code onDisable} returns, so
+     * the last flush cannot be a scheduler task. It runs on a plain thread that
+     * the main thread joins for at most {@link #SHUTDOWN_TIMEOUT_MILLIS}, which
+     * keeps a hung database from stalling server shutdown indefinitely.
+     */
     public void close() {
         List<PlayerStats> deltas = drainPending();
-        if (!deltas.isEmpty()) {
-            db.upsertBatch(deltas);
+
+        Thread worker = new Thread(() -> {
+            if (!deltas.isEmpty()) {
+                db.upsertBatch(deltas);
+            }
+            db.close();
+        }, "PolaroidDragon-stats-shutdown");
+        worker.setDaemon(true);
+        worker.start();
+
+        try {
+            worker.join(SHUTDOWN_TIMEOUT_MILLIS);
+            if (worker.isAlive()) {
+                plugin.getLogger().warning("The final statistics flush did not finish within "
+                        + (SHUTDOWN_TIMEOUT_MILLIS / 1000) + "s; shutting down anyway.");
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
         }
-        db.close();
     }
 
     // ─────────────────────────────────────────────

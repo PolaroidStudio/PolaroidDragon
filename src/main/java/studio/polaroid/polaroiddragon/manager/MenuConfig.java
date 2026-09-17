@@ -33,11 +33,11 @@ public class MenuConfig {
     }
 
     // ─────────────────────────────────────────────
-    //  INFO — título, tamaño, filler
+    //  INFO — title, size, filler
     // ─────────────────────────────────────────────
 
     public String getInfoTitle() {
-        return config.getString("info.title", "<dark_gray><b>Estado del Dragón");
+        return config.getString("info.title", "<dark_gray><b>ᴇsᴛᴀᴅᴏ ᴅᴇʟ ᴅʀᴀɢᴏɴ");
     }
 
     public int getInfoSize() {
@@ -45,19 +45,24 @@ public class MenuConfig {
     }
 
     public boolean isInfoFillerEnabled() {
-        return config.getBoolean("info.filler.enabled", false);
+        return config.getBoolean("info.filler.enabled", true);
     }
 
     public Material getInfoFillerMaterial() {
-        return parseMaterial("info.filler.material", Material.GRAY_STAINED_GLASS_PANE);
+        return parseMaterial("info.filler.material", Material.BLACK_STAINED_GLASS_PANE);
     }
 
     public String getInfoFillerName() {
         return config.getString("info.filler.name", " ");
     }
 
+    /** Hides the filler tooltip so an empty box does not trail the cursor. */
+    public boolean isInfoFillerTooltipHidden() {
+        return config.getBoolean("info.filler.hide-tooltip", true);
+    }
+
     // ─────────────────────────────────────────────
-    //  INFO — ítems
+    //  INFO — items
     // ─────────────────────────────────────────────
 
     public int getInfoStatusSlot() {
@@ -81,11 +86,11 @@ public class MenuConfig {
     }
 
     // ─────────────────────────────────────────────
-    //  TOP EVENT — título, tamaño, filler
+    //  TOP EVENT — title, size, filler
     // ─────────────────────────────────────────────
 
     public String getTopEventTitle() {
-        return config.getString("top-event.title", "<dark_gray><b>Top — Evento actual");
+        return config.getString("top-event.title", "<dark_gray><b>ᴛᴏᴘ ᴅᴇʟ ᴇᴠᴇɴᴛᴏ");
     }
 
     public int getTopEventSize() {
@@ -93,19 +98,24 @@ public class MenuConfig {
     }
 
     public boolean isTopEventFillerEnabled() {
-        return config.getBoolean("top-event.filler.enabled", false);
+        return config.getBoolean("top-event.filler.enabled", true);
     }
 
     public Material getTopEventFillerMaterial() {
-        return parseMaterial("top-event.filler.material", Material.GRAY_STAINED_GLASS_PANE);
+        return parseMaterial("top-event.filler.material", Material.BLACK_STAINED_GLASS_PANE);
     }
 
     public String getTopEventFillerName() {
         return config.getString("top-event.filler.name", " ");
     }
 
+    /** Hides the filler tooltip so an empty box does not trail the cursor. */
+    public boolean isTopEventFillerTooltipHidden() {
+        return config.getBoolean("top-event.filler.hide-tooltip", true);
+    }
+
     // ─────────────────────────────────────────────
-    //  TOP EVENT — ítems
+    //  TOP EVENT — items
     // ─────────────────────────────────────────────
 
     public List<Integer> getTopEventRankingSlots() {
@@ -138,15 +148,15 @@ public class MenuConfig {
     }
 
     public Material getTopEventNavToInfoMaterial() {
-        return parseMaterial("top-event.items.nav-to-info.material", Material.COMPASS);
+        return parseMaterial("top-event.items.nav-to-info.material", Material.ARROW);
     }
 
     // ─────────────────────────────────────────────
-    //  HALL OF FAME — título, tamaño, filler
+    //  HALL OF FAME — title, size, filler
     // ─────────────────────────────────────────────
 
     public String getHallOfFameTitle() {
-        return config.getString("hall-of-fame.title", "<dark_gray><b>Hall of Fame");
+        return config.getString("hall-of-fame.title", "<dark_gray><b>sᴀʟᴏɴ ᴅᴇ ʟᴀ ғᴀᴍᴀ");
     }
 
     public int getHallOfFameSize() {
@@ -154,19 +164,24 @@ public class MenuConfig {
     }
 
     public boolean isHallOfFameFillerEnabled() {
-        return config.getBoolean("hall-of-fame.filler.enabled", false);
+        return config.getBoolean("hall-of-fame.filler.enabled", true);
     }
 
     public Material getHallOfFameFillerMaterial() {
-        return parseMaterial("hall-of-fame.filler.material", Material.GRAY_STAINED_GLASS_PANE);
+        return parseMaterial("hall-of-fame.filler.material", Material.BLACK_STAINED_GLASS_PANE);
     }
 
     public String getHallOfFameFillerName() {
         return config.getString("hall-of-fame.filler.name", " ");
     }
 
+    /** Hides the filler tooltip so an empty box does not trail the cursor. */
+    public boolean isHallOfFameFillerTooltipHidden() {
+        return config.getBoolean("hall-of-fame.filler.hide-tooltip", true);
+    }
+
     // ─────────────────────────────────────────────
-    //  HALL OF FAME — ítems
+    //  HALL OF FAME — items
     // ─────────────────────────────────────────────
 
     public List<Integer> getHallOfFameRankingSlots() {
@@ -199,7 +214,7 @@ public class MenuConfig {
     }
 
     public Material getHallOfFameNavToInfoMaterial() {
-        return parseMaterial("hall-of-fame.items.nav-to-info.material", Material.COMPASS);
+        return parseMaterial("hall-of-fame.items.nav-to-info.material", Material.ARROW);
     }
 
     // ─────────────────────────────────────────────
@@ -212,7 +227,7 @@ public class MenuConfig {
         Material mat = Material.matchMaterial(value);
         if (mat == null) {
             plugin.getLogger().log(Level.WARNING,
-                    "menus.yml: material inválido en ''{0}'': {1}. Usando {2}.",
+                    "menus.yml: invalid material at ''{0}'': {1}. Using {2}.",
                     new Object[]{path, value, fallback.name()});
             return fallback;
         }
@@ -222,7 +237,7 @@ public class MenuConfig {
     private int validSize(int size) {
         if (size % 9 != 0 || size < 9 || size > 54) {
             plugin.getLogger().log(Level.WARNING,
-                    "menus.yml: size inválido ({0}), usando 27.", size);
+                    "menus.yml: invalid size ({0}), using 27.", size);
             return 27;
         }
         return size;

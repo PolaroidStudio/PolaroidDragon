@@ -77,16 +77,27 @@ public class DiscordWebhookManager {
         if (avatarUrl != null && !avatarUrl.isBlank()) payload.addProperty("avatar_url", avatarUrl);
         payload.add("embeds", embeds);
 
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(url))
-                .timeout(Duration.ofSeconds(10))
-                .header("Content-Type", "application/json")
-                .POST(HttpRequest.BodyPublishers.ofString(payload.toString()))
-                .build();
+        // Building the request is synchronous, so a malformed URL would throw on
+        // the caller's thread and abort whatever it was doing (reward payout, for
+        // one) part-way through. A bad webhook URL must never cost a player a
+        // reward, so it is contained here and only disables the notification.
+        HttpRequest request;
+        try {
+            request = HttpRequest.newBuilder()
+                    .uri(URI.create(url))
+                    .timeout(Duration.ofSeconds(10))
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(payload.toString()))
+                    .build();
+        } catch (IllegalArgumentException e) {
+            plugin.getLogger().warning("Invalid Discord webhook URL in webhook.yml ("
+                    + e.getMessage() + "); the notification was skipped.");
+            return;
+        }
 
         httpClient.sendAsync(request, HttpResponse.BodyHandlers.discarding())
                 .exceptionally(ex -> {
-                    plugin.getLogger().warning("Error enviando webhook de Discord: " + ex.getMessage());
+                    plugin.getLogger().warning("Could not send the Discord webhook: " + ex.getMessage());
                     return null;
                 });
     }

@@ -1,30 +1,51 @@
 # ══════════════════════════════════════════════
-#        HildaDragon — Almacenamiento de datos
+#        PolaroidDragon — Data storage
 # ══════════════════════════════════════════════
 #
-# Controla DÓNDE se guardan las estadísticas del Salón de la Fama
-# (daño total y eventos participados por jugador).
+# Controls WHERE the Hall of Fame statistics are stored
+# (each player's total damage and number of events participated in).
 #
-# IMPORTANTE: cambiar este archivo requiere REINICIAR el servidor.
-#   El comando /hildadragon reload NO reabre la base de datos.
+# IMPORTANT: changing this file requires a FULL SERVER RESTART.
+#   /polaroiddragon reload only re-reads the YAML configuration.
+#   It never reopens the database connection pool.
 #
-# Tipos de almacenamiento disponibles:
-#   sqlite  → archivo local (por defecto, sin configuración extra)
-#   mysql   → base de datos MySQL/MariaDB externa
+# If an old stats.yml exists, its contents are imported automatically
+# once on startup and the file is renamed to stats.yml.bak.
 #
-# Si existe un stats.yml antiguo, sus datos se importan automáticamente
-# una sola vez al arrancar y el archivo se renombra a stats.yml.bak.
+# All database work runs off the server thread, so a slow or unreachable
+# database never freezes the server. It only delays the statistics.
 # ══════════════════════════════════════════════
 
-storage: sqlite   # sqlite | mysql
+# Which backend to use.
+#   sqlite -> a local file. The default. Needs no extra setup, one server only.
+#   mysql  -> an external MySQL/MariaDB server. Use this when several servers
+#             must share the same Hall of Fame.
+storage: sqlite
 
 sqlite:
+  # File name only. The file is always created inside
+  # plugins/PolaroidDragon/data/, never next to the YAML configs, so a
+  # configuration reload can never try to read the database as text.
   file: "data.db"
 
 mysql:
+  # Address of the MySQL/MariaDB server. Only used when storage is 'mysql'.
   host: "localhost"
+  # Port the database listens on. The MySQL default is 3306.
   port: 3306
+  # Name of an EXISTING database. The plugin creates its own table inside it,
+  # but it does not create the database itself.
   database: "minecraft"
+  # Database user. It needs SELECT, INSERT, UPDATE and CREATE TABLE rights.
   username: "root"
+  # Password for that user. Leave empty ("") if the user has no password.
   password: ""
+  # Extra JDBC connection parameters, appended to the connection URL.
+  # Leave as-is unless your database provider told you otherwise.
   params: "useSSL=false&serverTimezone=UTC"
+  # How many connections the pool may open at once.
+  # 8 is plenty for a single server. Raise it only if you run many servers
+  # against one database AND you have measured connection starvation.
+  # Ignored when storage is 'sqlite': SQLite allows a single writer, so its
+  # pool is always fixed at 1 connection.
+  pool-size: 8

@@ -30,13 +30,15 @@ public class DragonMenu {
     private final StatsManager statsManager;
     private final MessageManager messages;
     private final MenuConfig menuConfig;
+    private final MenuItemMarker marker;
 
     public DragonMenu(DragonManager dragonManager, StatsManager statsManager,
-                      MessageManager messages, MenuConfig menuConfig) {
+                      MessageManager messages, MenuConfig menuConfig, MenuItemMarker marker) {
         this.dragonManager = dragonManager;
         this.statsManager = statsManager;
         this.messages = messages;
         this.menuConfig = menuConfig;
+        this.marker = marker;
     }
 
     // ─────────────────────────────────────────────
@@ -242,20 +244,29 @@ public class DragonMenu {
         switch (view) {
             case INFO -> inv.setItem(
                     menuConfig.getInfoNavToTopSlot(),
-                    simpleItem(menuConfig.getInfoNavToTopMaterial(), messages.get("gui.nav-top")));
+                    navItem(menuConfig.getInfoNavToTopMaterial(), "gui.nav-top"));
             case TOP_EVENT -> {
                 inv.setItem(menuConfig.getTopEventNavToHallSlot(),
-                        simpleItem(menuConfig.getTopEventNavToHallMaterial(), messages.get("gui.nav-hall-of-fame")));
+                        navItem(menuConfig.getTopEventNavToHallMaterial(), "gui.nav-hall-of-fame"));
                 inv.setItem(menuConfig.getTopEventNavToInfoSlot(),
-                        simpleItem(menuConfig.getTopEventNavToInfoMaterial(), messages.get("gui.nav-info")));
+                        navItem(menuConfig.getTopEventNavToInfoMaterial(), "gui.nav-info"));
             }
             case HALL_OF_FAME -> {
                 inv.setItem(menuConfig.getHallOfFameNavToTopSlot(),
-                        simpleItem(menuConfig.getHallOfFameNavToTopMaterial(), messages.get("gui.nav-top")));
+                        navItem(menuConfig.getHallOfFameNavToTopMaterial(), "gui.nav-top"));
                 inv.setItem(menuConfig.getHallOfFameNavToInfoSlot(),
-                        simpleItem(menuConfig.getHallOfFameNavToInfoMaterial(), messages.get("gui.nav-info")));
+                        navItem(menuConfig.getHallOfFameNavToInfoMaterial(), "gui.nav-info"));
             }
         }
+    }
+
+    /**
+     * A navigation button: its name from {@code <key>} and its lore from
+     * {@code <key>-lore}, so every actionable item ends in a click prompt.
+     */
+    private ItemStack navItem(Material material, String key) {
+        List<String> lore = messages.getList(key + "-lore");
+        return simpleItem(material, messages.get(key), lore.toArray(new String[0]));
     }
 
     // ─────────────────────────────────────────────
@@ -281,10 +292,25 @@ public class DragonMenu {
             case HALL_OF_FAME -> menuConfig.getHallOfFameFillerName();
         };
 
+        boolean hideTooltip = switch (view) {
+            case INFO -> menuConfig.isInfoFillerTooltipHidden();
+            case TOP_EVENT -> menuConfig.isTopEventFillerTooltipHidden();
+            case HALL_OF_FAME -> menuConfig.isHallOfFameFillerTooltipHidden();
+        };
+
         ItemStack filler = simpleItem(mat, name);
+        if (hideTooltip) {
+            // An empty tooltip box trailing the cursor over every filler pane
+            // looks broken; Paper 1.20.5+ can suppress it outright.
+            ItemMeta fillerMeta = filler.getItemMeta();
+            fillerMeta.setHideTooltip(true);
+            filler.setItemMeta(fillerMeta);
+        }
         for (int i = 0; i < inv.getSize(); i++) {
             if (inv.getItem(i) == null) {
-                inv.setItem(i, filler);
+                // A clone per slot: sharing one instance lets a later mutation
+                // on any slot silently rewrite every other one.
+                inv.setItem(i, filler.clone());
             }
         }
     }
@@ -303,7 +329,8 @@ public class DragonMenu {
             meta.lore(lore);
         }
         item.setItemMeta(meta);
-        return item;
+        // Single render choke point: every chrome item leaves here marked.
+        return marker.mark(item);
     }
 
     private ItemStack playerHead(UUID uuid, String name, String... loreLines) {
@@ -317,10 +344,14 @@ public class DragonMenu {
             meta.lore(lore);
         }
         item.setItemMeta(meta);
-        return item;
+        // Single render choke point: every chrome item leaves here marked.
+        return marker.mark(item);
     }
 
     private Component colorize(String text) {
-        return LegacyComponentSerializer.legacySection().deserialize(ColorUtil.parse(text));
+        // Rendered straight to a Component. Round-tripping through the legacy
+        // serializer would flatten gradients to per-character colours and drop
+        // hover/click, which the Polaroid menu styling relies on.
+        return ColorUtil.component(text);
     }
 }

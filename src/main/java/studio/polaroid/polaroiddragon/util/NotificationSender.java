@@ -8,35 +8,46 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class NotificationSender {
+/**
+ * Reads a notification block from the config and broadcasts it to every online player.
+ *
+ * <p>A block has four independent channels — chat, actionbar, title and sound — each with its
+ * own {@code enabled} switch. Text is parsed with {@link ColorFormats}, so MiniMessage tags and
+ * legacy codes both render.
+ */
+public final class NotificationSender {
+
+    private NotificationSender() {}
 
     /**
-     * Lee un bloque de notificación del config y lo envía a todos los jugadores online.
-     *
-     * @param config       FileConfiguration del plugin
-     * @param path         ruta al bloque (ej. "phases.spawn.notification")
-     * @param placeholders mapa de reemplazos %clave% → valor
+     * @param config       the plugin FileConfiguration
+     * @param path         path to the notification block (e.g. "phases.spawn.notification")
+     * @param placeholders replacement map, %key% to value
      */
     public static void send(FileConfiguration config, String path, Map<String, String> placeholders) {
 
         // CHAT
         if (config.getBoolean(path + ".chat.enabled")) {
-            List<String> lines = config.getStringList(path + ".chat.content");
-            for (Player player : Bukkit.getOnlinePlayers()) {
-                for (String line : lines) {
-                    player.sendMessage(ColorUtil.parse(apply(line, placeholders)));
+            List<Component> lines = new ArrayList<>();
+            for (String line : config.getStringList(path + ".chat.content")) {
+                lines.add(render(line, placeholders));
+            }
+            if (!lines.isEmpty()) {
+                for (Player player : Bukkit.getOnlinePlayers()) {
+                    for (Component line : lines) {
+                        player.sendMessage(line);
+                    }
                 }
             }
         }
 
         // ACTIONBAR
         if (config.getBoolean(path + ".actionbar.enabled")) {
-            Component component = Component.text(
-                    ColorUtil.parse(apply(config.getString(path + ".actionbar.content", ""), placeholders))
-            );
+            Component component = render(config.getString(path + ".actionbar.content", ""), placeholders);
             for (Player player : Bukkit.getOnlinePlayers()) {
                 player.sendActionBar(component);
             }
@@ -44,11 +55,9 @@ public class NotificationSender {
 
         // TITLE
         if (config.getBoolean(path + ".title.enabled")) {
-            String titleText    = ColorUtil.parse(apply(config.getString(path + ".title.title",    ""), placeholders));
-            String subtitleText = ColorUtil.parse(apply(config.getString(path + ".title.subtitle", ""), placeholders));
             Title title = Title.title(
-                    Component.text(titleText),
-                    Component.text(subtitleText),
+                    render(config.getString(path + ".title.title", ""), placeholders),
+                    render(config.getString(path + ".title.subtitle", ""), placeholders),
                     Title.Times.times(
                             Duration.ofMillis(config.getInt(path + ".title.fade-in",  10) * 50L),
                             Duration.ofMillis(config.getInt(path + ".title.stay",     60) * 50L),
@@ -67,15 +76,25 @@ public class NotificationSender {
                 for (Player player : Bukkit.getOnlinePlayers()) {
                     player.playSound(player.getLocation(), sound, 1f, 1f);
                 }
-            } catch (IllegalArgumentException ignored) { }
+            } catch (IllegalArgumentException ignored) {
+                // An unknown sound name silences that channel; the rest of the block still fires.
+            }
         }
+    }
+
+    private static Component render(String text, Map<String, String> placeholders) {
+        String applied = apply(text, placeholders);
+        // A blank separator line must stay a real empty line, not collapse away.
+        if (applied.isEmpty()) return Component.empty();
+        return ColorFormats.parse(applied);
     }
 
     private static String apply(String text, Map<String, String> placeholders) {
         if (text == null) return "";
+        String result = text;
         for (Map.Entry<String, String> entry : placeholders.entrySet()) {
-            text = text.replace(entry.getKey(), entry.getValue());
+            result = result.replace(entry.getKey(), entry.getValue());
         }
-        return text;
+        return result;
     }
 }

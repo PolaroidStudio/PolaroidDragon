@@ -1,112 +1,134 @@
 # ══════════════════════════════════════════════
-#              HildaDragon — Menus
+#            PolaroidDragon — Menús
 # ══════════════════════════════════════════════
 #
-# Configura TODA la estructura visual de los 3 GUIs del plugin.
-# Soporta colores & y hex &#RRGGBB en los títulos.
-# Los TEXTOS de los ítems (nombre, lore) se siguen editando en messages.yml
-# Materiales válidos: https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/Material.html
+# Estructura visual de las 3 vistas del plugin. Los TEXTOS de los ítems (nombres y lore)
+# se editan en lang/messages_<idioma>.yml; aquí se configuran títulos, tamaños,
+# materiales, slots y el relleno de fondo.
+#
+# Los títulos aceptan MiniMessage (https://docs.advntr.dev/minimessage/format.html).
+# Los códigos antiguos & y &#RRGGBB también funcionan, pero usa MiniMessage en texto nuevo.
+#
+# Estilo Polaroid: el título de un menú es una etiqueta de la ventana, no un sitio para
+# llamar la atención. Va siempre en <dark_gray><b>.
+#
+# Materiales válidos:
+# https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/Material.html
 #
 # Slots de un inventario de 3 filas (size: 27):
 #   Fila 1:  0  1  2  3  4  5  6  7  8
 #   Fila 2:  9 10 11 12 13 14 15 16 17
 #   Fila 3: 18 19 20 21 22 23 24 25 26
 #
+# ── EL RELLENO (filler) ───────────────────────
+# enabled      true  = los huecos vacíos se rellenan con un panel decorativo.
+#                      Déjalo en true: además de verse mejor, evita que un jugador
+#                      pueda depositar objetos en los huecos libres del menú.
+#              false = el menú queda con huecos vacíos (no recomendado).
+# material     el bloque usado como relleno. El estándar Polaroid es el panel negro.
+# name         nombre del ítem de relleno. Solo se usa si hide-tooltip está en false.
+# hide-tooltip true  = el panel no muestra ningún tooltip al pasar el ratón (recomendado:
+#                      un tooltip vacío siguiendo al cursor parece un error).
+#              false = muestra el texto de "name".
+#
 # ══════════════════════════════════════════════
 
 # ─────────────────────────────────────────────
-#  VISTA: INFO  (/hildadragon info)
+#  VISTA: INFO  (/polaroiddragon info)
 # ─────────────────────────────────────────────
 info:
-  title: "&#AA33FF&lHildaDragon &8» &fEstado del Dragón"
+  title: "<dark_gray><b>ᴇsᴛᴀᴅᴏ ᴅᴇʟ ᴅʀᴀɢᴏɴ"
   size: 27
 
   filler:
-    enabled: false
-    material: GRAY_STAINED_GLASS_PANE
+    enabled: true
+    material: BLACK_STAINED_GLASS_PANE
     name: " "
+    hide-tooltip: true
 
   items:
-    # Ítem central que muestra el estado del dragón
+    # Ítem central que muestra el estado del dragón.
     status:
       slot: 13
-      material-active: DRAGON_HEAD    # cuando el evento o countdown están activos
-      material-inactive: BARRIER      # cuando no hay nada
+      material-active: DRAGON_HEAD    # cuando el evento o la cuenta atrás están activos
+      material-inactive: BARRIER      # cuando no hay nada en curso
 
-    # Botón de navegación → va al Top del evento actual
+    # Botón de navegación → abre el Top del evento actual.
     nav-to-top:
       slot: 22
       material: NETHER_STAR
 
 # ─────────────────────────────────────────────
-#  VISTA: TOP EVENTO ACTUAL  (/hildadragon top evento)
+#  VISTA: TOP DEL EVENTO ACTUAL  (/polaroiddragon top evento)
 # ─────────────────────────────────────────────
 top-event:
-  title: "&#AA33FF&lHildaDragon &8» &fTop — Evento actual"
+  title: "<dark_gray><b>ᴛᴏᴘ ᴅᴇʟ ᴇᴠᴇɴᴛᴏ"
   size: 27
 
   filler:
-    enabled: false
-    material: GRAY_STAINED_GLASS_PANE
+    enabled: true
+    material: BLACK_STAINED_GLASS_PANE
     name: " "
+    hide-tooltip: true
 
   items:
-    # Slots de las cabezas del ranking (1er al 5to lugar)
-    # Puedes agregar o quitar slots para cambiar cuántos lugares se muestran
+    # Slots de las cabezas del ranking (1º al 5º).
+    # Añade o quita slots para cambiar cuántos puestos se muestran.
     ranking:
       slots: [10, 11, 12, 13, 14]
 
-    # Slot donde se muestra la cabeza del jugador que abre el menú
+    # Slot donde se muestra la cabeza del jugador que abre el menú.
     my-position:
       slot: 4
 
-    # Ítem que aparece cuando no hay evento activo o nadie ha dañado al dragón
+    # Ítem mostrado cuando no hay evento activo o nadie ha dañado al dragón.
     empty:
       slot: 13
       material: BARRIER
 
-    # Botón de navegación → va al Hall of Fame
+    # Botón de navegación → abre el Salón de la Fama.
     nav-to-hall:
       slot: 18
       material: NETHER_STAR
 
-    # Botón de navegación → vuelve al Info
+    # Botón de navegación → vuelve a la vista de estado.
     nav-to-info:
       slot: 22
-      material: COMPASS
+      material: ARROW
 
 # ─────────────────────────────────────────────
-#  VISTA: HALL OF FAME  (/hildadragon top)
+#  VISTA: SALÓN DE LA FAMA  (/polaroiddragon top)
 # ─────────────────────────────────────────────
 hall-of-fame:
-  title: "&#AA33FF&lHildaDragon &8» &fHall of Fame"
+  title: "<dark_gray><b>sᴀʟᴏɴ ᴅᴇ ʟᴀ ғᴀᴍᴀ"
   size: 27
 
   filler:
-    enabled: false
-    material: GRAY_STAINED_GLASS_PANE
+    enabled: true
+    material: BLACK_STAINED_GLASS_PANE
     name: " "
+    hide-tooltip: true
 
   items:
-    # Slots de las cabezas del ranking histórico (1er al 5to lugar)
+    # Slots de las cabezas del ranking histórico (1º al 5º).
     ranking:
       slots: [10, 11, 12, 13, 14]
 
-    # Slot donde se muestra la cabeza del jugador que abre el menú
+    # Slot donde se muestra la cabeza del jugador que abre el menú.
     my-position:
       slot: 4
 
-    # Ítem que aparece cuando no hay estadísticas registradas
+    # Ítem mostrado cuando aún no hay estadísticas registradas.
     empty:
       slot: 13
       material: BARRIER
 
-    # Botón de navegación → va al Top del evento actual
+    # Botón de navegación → abre el Top del evento actual.
     nav-to-top:
       slot: 18
       material: NETHER_STAR
 
-    # Botón de navegación → vuelve al Info
+    # Botón de navegación → vuelve a la vista de estado.
     nav-to-info:
       slot: 22
-      material: COMPASS
+      material: ARROW
