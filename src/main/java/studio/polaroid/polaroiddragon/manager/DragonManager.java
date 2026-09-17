@@ -1,6 +1,7 @@
 package studio.polaroid.polaroiddragon.manager;
 
 import studio.polaroid.polaroiddragon.PolaroidDragon;
+import studio.polaroid.polaroiddragon.hook.FancyNpcsHook;
 import studio.polaroid.polaroiddragon.util.ColorUtil;
 import studio.polaroid.polaroiddragon.util.NotificationSender;
 import studio.polaroid.polaroiddragon.util.TimeUtil;
@@ -66,6 +67,15 @@ public class DragonManager {
     /** Survives a restart mid-fight: the damage ledger and the event deadline. */
     private final EventStateStore eventStateStore;
 
+    /** Remembers the last killer and the last top damager across events and restarts. */
+    private final HunterStore hunterStore;
+
+    /**
+     * Optional FancyNpcs integration. Null whenever FancyNpcs is absent, which
+     * keeps every FancyNpcs class off this plugin's loading path entirely.
+     */
+    private volatile FancyNpcsHook fancyNpcsHook = null;
+
     /** Absolute event deadline, epoch millis. 0 when no timeout is configured. */
     private volatile long eventDeadlineMillis = 0L;
 
@@ -84,7 +94,14 @@ public class DragonManager {
         this.damageTracker = new DamageTracker();
         this.scheduleManager = new ScheduleManager(plugin);
         this.eventStateStore = new EventStateStore(plugin);
+        this.hunterStore = new HunterStore(plugin);
     }
+
+    /** Remembered hunters, read by the placeholders and by the NPC refresh. */
+    public HunterStore getHunterStore() { return hunterStore; }
+
+    /** Installed from onEnable only when FancyNpcs is present. */
+    public void setFancyNpcsHook(FancyNpcsHook hook) { this.fancyNpcsHook = hook; }
 
     // ─────────────────────────────────────────────
     //  STARTUP SCAN
@@ -553,6 +570,19 @@ public class DragonManager {
         }
         if (!ranking.isEmpty()) statsManager.flush();
 
+        // Remember this event's hunters before the ledger is wiped: both names
+        // are resolved through the tracker, which reset() is about to empty.
+        // Each record is sticky and independent — an event without a killer or
+        // without participants simply leaves that one record as it was.
+        if (!timeout && killer != null) {
+            hunterStore.recordKiller(killer.getUniqueId(), killer.getName());
+        }
+        if (!ranking.isEmpty()) {
+            UUID topUuid = ranking.get(0).getKey();
+            hunterStore.recordTopDamager(topUuid, damageTracker.getPlayerName(topUuid));
+        }
+        refreshHunterNpcs();
+
         damageTracker.reset();
         scheduleNextEvent();
     }
@@ -577,6 +607,33 @@ public class DragonManager {
             rewarded.add(uuid);
         }
         return rewarded;
+    }
+
+    /**
+     * Points the configured NPCs at the currently remembered hunters.
+     *
+     * <p>Called at event end and once on a delayed startup task. Does nothing
+     * when FancyNpcs is absent or the feature is switched off; an NPC whose
+     * name is blank in config is skipped by the hook itself.
+     */
+    public void refreshHunterNpcs() {
+        FancyNpcsHook hook = fancyNpcsHook;
+        if (hook == null) return;
+        if (!plugin.getConfig().getBoolean("npc.enabled", true)) return;
+
+        applyHunterNpc(hook, "npc.last-killer", hunterStore.getLastKiller());
+        applyHunterNpc(hook, "npc.top-damager", hunterStore.getTopDamager());
+    }
+
+    private void applyHunterNpc(FancyNpcsHook hook, String path, HunterStore.Hunter hunter) {
+        // Never recorded yet: there is no name to show, so the NPC is left
+        // exactly as the owner built it rather than blanked.
+        if (hunter == null || hunter.name() == null) return;
+        hook.apply(
+                plugin.getConfig().getString(path + ".name", ""),
+                hunter.name(),
+                plugin.getConfig().getString(path + ".display", "")
+        );
     }
 
     private Map<String, String> buildEndPlaceholders(List<Map.Entry<UUID, Double>> ranking,

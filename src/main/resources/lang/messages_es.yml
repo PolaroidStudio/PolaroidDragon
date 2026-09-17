@@ -207,6 +207,12 @@ placeholders-help:
     - "<#289bd0>ᴊᴜɢᴀᴅᴏʀ — ʜɪsᴛᴏʀɪᴄᴏ"
     - "<#f2c42f> • <#E9FDFB>%polaroiddragon_my_total_damage% <#315a7a>→ <#b6c1ec>daño total en todos los eventos"
     - "<#f2c42f> • <#E9FDFB>%polaroiddragon_my_events%       <#315a7a>→ <#b6c1ec>número de eventos en los que participó"
+    - ""
+    - "<#289bd0>ᴜʟᴛɪᴍᴏs ᴄᴀᴢᴀᴅᴏʀᴇs <#6f6085>(se mantienen hasta el siguiente evento)"
+    - "<#f2c42f> • <#E9FDFB>%polaroiddragon_last_killer_name% <#315a7a>→ <#b6c1ec>quién dio el golpe final la última vez"
+    - "<#f2c42f> • <#E9FDFB>%polaroiddragon_last_killer_date% <#315a7a>→ <#b6c1ec>cuándo ocurrió"
+    - "<#f2c42f> • <#E9FDFB>%polaroiddragon_top_damager_name% <#315a7a>→ <#b6c1ec>quién quedó 1º la última vez"
+    - "<#f2c42f> • <#E9FDFB>%polaroiddragon_top_damager_date% <#315a7a>→ <#b6c1ec>cuándo ocurrió"
 
 # /polaroiddragon sin argumentos, o con un argumento desconocido.
 help:

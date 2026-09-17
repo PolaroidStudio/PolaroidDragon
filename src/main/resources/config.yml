@@ -40,6 +40,12 @@
 #  %polaroiddragon_my_total_damage% → total damage across every event
 #  %polaroiddragon_my_events%       → number of events they took part in
 #
+#  LAST HUNTERS — kept until a new event replaces them
+#  %polaroiddragon_last_killer_name% → who landed the final blow last time
+#  %polaroiddragon_last_killer_date% → when that happened (dd/MM/yyyy HH:mm)
+#  %polaroiddragon_top_damager_name% → who finished 1st last time
+#  %polaroiddragon_top_damager_date% → when that happened
+#
 # ══════════════════════════════════════════════
 
 # ── LANGUAGE ──────────────────────────────────
@@ -289,3 +295,45 @@ rewards:
     enabled: true
     money: 100
     commands: []
+
+# ══════════════════════════════════════════════
+#  HUNTER NPCs (optional — requires FancyNpcs)
+#
+#  Shows the last dragon hunter on an NPC: their skin and their name.
+#  Two independent hunters are tracked:
+#    last-killer → whoever landed the final blow
+#    top-damager → whoever finished 1st in the damage ranking
+#
+#  THIS PLUGIN NEVER CREATES, MOVES OR DELETES AN NPC.
+#  You build and place the NPC yourself with FancyNpcs:
+#    /npc create <name>
+#  then write that same <name> below. Leave a name empty to disable that NPC.
+#
+#  Both records are sticky: they keep the last valid value forever. An event
+#  that times out has no killer, so the NPC keeps the previous hunter rather
+#  than going blank.
+#
+#  display → MiniMessage. %player% is replaced with the hunter's name.
+#
+#  respawn-on-skin-change → set this to true if the skin does not visibly
+#  change. Some clients only re-read a skin when the entity is re-added, so
+#  this forces a remove/spawn cycle instead of a plain update.
+#
+#  startup-delay-ticks → how long to wait after the server starts before
+#  touching the NPCs. FancyNpcs loads its NPCs late; do not lower this
+#  below ~200 (10 seconds).
+# ══════════════════════════════════════════════
+npc:
+  enabled: true
+  respawn-on-skin-change: false
+  startup-delay-ticks: 200
+
+  last-killer:
+    # FancyNpcs NPC name; empty disables this NPC
+    name: ""
+    display: "<b><gradient:#eb4b30:#f3842c:#f2c42f:#95d027>%player%</gradient></b>"
+
+  top-damager:
+    # FancyNpcs NPC name; empty disables this NPC
+    name: ""
+    display: "<b><gradient:#289bd0:#b6c1ec:#E9FDFB>%player%</gradient></b>"

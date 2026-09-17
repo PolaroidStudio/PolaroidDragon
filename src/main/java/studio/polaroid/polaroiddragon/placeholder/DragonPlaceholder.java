@@ -1,19 +1,27 @@
 package studio.polaroid.polaroiddragon.placeholder;
 
+import studio.polaroid.polaroiddragon.PolaroidDragon;
 import studio.polaroid.polaroiddragon.manager.DamageTracker;
 import studio.polaroid.polaroiddragon.manager.DragonManager;
+import studio.polaroid.polaroiddragon.manager.HunterStore;
 import studio.polaroid.polaroiddragon.manager.StatsManager;
 import studio.polaroid.polaroiddragon.util.TimeUtil;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
-import org.bukkit.entity.EnderDragon;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
 public class DragonPlaceholder extends PlaceholderExpansion {
+
+    /** Shared and immutable; DateTimeFormatter is thread-safe, SimpleDateFormat is not. */
+    private static final DateTimeFormatter DATE_FORMAT =
+            DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 
     private final DragonManager dragonManager;
     private final StatsManager statsManager;
@@ -95,6 +103,18 @@ public class DragonPlaceholder extends PlaceholderExpansion {
                 return ps != null ? String.valueOf(ps.getEventsParticipated()) : "0";
             }
 
+            // ── LAST HUNTERS ─────────────────────────
+            // Sticky across events: these keep the last valid value, so an
+            // event that timed out does not blank a name a scoreboard shows.
+            case "last_killer_name":
+                return hunterName(dragonManager.getHunterStore().getLastKiller());
+            case "last_killer_date":
+                return hunterDate(dragonManager.getHunterStore().getLastKiller());
+            case "top_damager_name":
+                return hunterName(dragonManager.getHunterStore().getTopDamager());
+            case "top_damager_date":
+                return hunterDate(dragonManager.getHunterStore().getTopDamager());
+
             default: {
                 // ── CURRENT EVENT TOP: top1_name, top1_damage … top5 ──
                 for (int i = 1; i <= 5; i++) {
@@ -112,6 +132,22 @@ public class DragonPlaceholder extends PlaceholderExpansion {
                 return null;
             }
         }
+    }
+
+    /** Falls back to the same "nobody" wording the end-of-event message uses. */
+    private String hunterName(HunterStore.Hunter hunter) {
+        if (hunter == null || hunter.name() == null) {
+            return PolaroidDragon.getInstance().getMessageManager().plainText("general.no-killer");
+        }
+        return hunter.name();
+    }
+
+    private String hunterDate(HunterStore.Hunter hunter) {
+        if (hunter == null || hunter.timestamp() <= 0L) return "-";
+        // Rendered in the server's own zone: this is shown next to a name on a
+        // scoreboard or an NPC, where a UTC timestamp would read as wrong.
+        return DATE_FORMAT.format(
+                Instant.ofEpochMilli(hunter.timestamp()).atZone(ZoneId.systemDefault()));
     }
 
     private String getTopName(DamageTracker t, int pos) {

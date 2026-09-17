@@ -5,6 +5,7 @@ import studio.polaroid.polaroiddragon.gui.DragonMenu;
 import studio.polaroid.polaroiddragon.gui.DragonMenuListener;
 import studio.polaroid.polaroiddragon.gui.MenuItemCleanupListener;
 import studio.polaroid.polaroiddragon.gui.MenuItemMarker;
+import studio.polaroid.polaroiddragon.hook.FancyNpcsHook;
 import studio.polaroid.polaroiddragon.listener.DragonDamageListener;
 import studio.polaroid.polaroiddragon.listener.DragonDeathListener;
 import studio.polaroid.polaroiddragon.listener.PlayerJoinListener;
@@ -81,6 +82,23 @@ public class PolaroidDragon extends JavaPlugin {
         if (getServer().getPluginManager().getPlugin("PlaceholderAPI") != null) {
             new DragonPlaceholder(dragonManager, statsManager).register();
             getLogger().info("PlaceholderAPI detected; placeholders registered.");
+        }
+
+        // FancyNpcs — optional hunter NPCs
+        if (getServer().getPluginManager().isPluginEnabled("FancyNpcs")) {
+            FancyNpcsHook fancyNpcsHook = new FancyNpcsHook(this);
+            getServer().getPluginManager().registerEvents(fancyNpcsHook, this);
+            dragonManager.setFancyNpcsHook(fancyNpcsHook);
+
+            // Deliberately not during onEnable. FancyNpcs loads its NPCs after
+            // the server finishes starting, and its Npc class resolves a static
+            // attribute from the plugin instance, which throws when touched too
+            // early. The first refresh therefore waits for the server to settle.
+            long delay = Math.max(1L, getConfig().getLong("npc.startup-delay-ticks", 200L));
+            getServer().getScheduler().runTaskLater(this, dragonManager::refreshHunterNpcs, delay);
+
+            getLogger().info("FancyNpcs detected; hunter NPCs will be refreshed in "
+                    + delay + " ticks.");
         }
 
         // Scan for an existing dragon after a restart

@@ -28,6 +28,10 @@
             <id>jitpack.io</id>
             <url>https://jitpack.io</url>
         </repository>
+        <repository>
+            <id>fancyinnovations-releases</id>
+            <url>https://repo.fancyinnovations.com/releases</url>
+        </repository>
     </repositories>
 
     <dependencies>
@@ -41,6 +45,27 @@
             <groupId>me.clip</groupId>
             <artifactId>placeholderapi</artifactId>
             <version>2.11.6</version>
+            <scope>provided</scope>
+        </dependency>
+        <!--
+            Optional NPC integration (hook/FancyNpcsHook). Compile-time only:
+            the plugin runs fine without FancyNpcs installed, and no class from
+            this artifact is loaded unless the plugin is enabled at runtime.
+            Pinned to 2.9.2, the last release compiled for Java 17. FancyNpcs
+            2.10.0+ ships class file version 69 (Java 25), which a JDK 21 build
+            cannot read, and keeping this project buildable on JDK 21 matters
+            more than compiling against the newest artifact.
+
+            This costs nothing at runtime: every signature the hook touches
+            (getNpcManager, getSkinManager, getNpc, getData, setSkinData,
+            setDisplayName, updateForAll, removeForAll, spawnForAll,
+            SkinManager.getByUsername) is byte-for-byte identical in 2.9.2 and
+            2.11.0, so a server running 2.10+ resolves them unchanged.
+        -->
+        <dependency>
+            <groupId>de.oliver</groupId>
+            <artifactId>FancyNpcs</artifactId>
+            <version>2.9.2</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
