@@ -1,6 +1,7 @@
 package studio.polaroid.polaroiddragon.manager;
 
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import studio.polaroid.polaroiddragon.PolaroidDragon;
@@ -107,18 +108,16 @@ public class MessageManager {
         return MessageHelper.buildPrefix(messages);
     }
 
-    /** The configured banner as a legacy §-string. */
-    public String prefix() {
-        return ColorFormats.toLegacy(prefixComponent());
-    }
-
-    public String get(String path) {
-        return get(path, Map.of());
-    }
-
-    /** A message rendered to a legacy §-string, without the banner. */
-    public String get(String path, Map<String, String> placeholders) {
-        return ColorFormats.toLegacy(component(path, placeholders));
+    /**
+     * A message stripped to plain text, with no formatting at all.
+     *
+     * <p>Only for destinations that cannot render a Component: a Discord embed
+     * or a value interpolated into another template. Anything sent to a player
+     * must use {@link #component(String)} instead, because rendering to a
+     * legacy §-string drops hover and click events and flattens gradients.
+     */
+    public String plainText(String path) {
+        return PlainTextComponentSerializer.plainText().serialize(component(path));
     }
 
     public Component component(String path) {
@@ -140,15 +139,6 @@ public class MessageManager {
         return body;
     }
 
-    public String prefixed(String path) {
-        return prefixed(path, Map.of());
-    }
-
-    /** Banner + message, rendered to a legacy §-string. */
-    public String prefixed(String path, Map<String, String> placeholders) {
-        return ColorFormats.toLegacy(prefixedComponent(path, placeholders));
-    }
-
     public Component prefixedComponent(String path) {
         return prefixedComponent(path, Map.of());
     }
@@ -160,19 +150,6 @@ public class MessageManager {
             return component(path, placeholders);
         }
         return prefixComponent().append(component(path, placeholders));
-    }
-
-    public List<String> getList(String path) {
-        return getList(path, Map.of());
-    }
-
-    /** A list of message lines rendered to legacy §-strings. List rows never carry the banner. */
-    public List<String> getList(String path, Map<String, String> placeholders) {
-        List<String> out = new ArrayList<>();
-        for (Component line : componentList(path, placeholders)) {
-            out.add(ColorFormats.toLegacy(line));
-        }
-        return out;
     }
 
     public List<Component> componentList(String path) {
@@ -189,6 +166,33 @@ public class MessageManager {
     }
 
     /**
+     * A message whose placeholders are replaced with Components rather than raw text.
+     *
+     * <p>Two reasons this exists instead of string interpolation:
+     *
+     * <ul>
+     *   <li>A replacement that is itself styled — a medal, for one — keeps its own
+     *       color, hover and click, because it is spliced into the parsed tree
+     *       instead of being flattened into the source string first.</li>
+     *   <li>Substituting before parsing means a value containing MiniMessage tags
+     *       is interpreted as markup. Player names reaching this from the database
+     *       or from a non-vanilla client could then open a tag. Replacing after the
+     *       parse makes that structurally impossible.</li>
+     * </ul>
+     *
+     * @param replacements placeholder token (e.g. {@code "{medal}"}) to the Component it becomes
+     */
+    public Component componentWith(String path, Map<String, Component> replacements) {
+        Component result = component(path);
+        for (Map.Entry<String, Component> entry : replacements.entrySet()) {
+            result = result.replaceText(builder -> builder
+                    .matchLiteral(entry.getKey())
+                    .replacement(entry.getValue()));
+        }
+        return result;
+    }
+
+    /**
      * Localized weekday name, or null when the language file has no entry.
      *
      * <p>Returns null rather than the raw key so the caller can fall back to a
@@ -196,11 +200,6 @@ public class MessageManager {
      */
     public String getDayName(String dayOfWeekName) {
         return messages.getString("days." + dayOfWeekName);
-    }
-
-    /** Medal for a ranking position (1 = first, 2 = second, ...). */
-    public String getMedal(int position) {
-        return ColorFormats.toLegacy(medalComponent(position));
     }
 
     public Component medalComponent(int position) {

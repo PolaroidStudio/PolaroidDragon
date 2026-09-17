@@ -3,34 +3,24 @@ package studio.polaroid.polaroiddragon.util;
 import net.kyori.adventure.text.Component;
 
 /**
- * Thin compatibility facade over {@link ColorFormats}.
+ * Thin facade over {@link ColorFormats} for raw config strings.
  *
- * <p>Historically this class only understood {@code &} codes and {@code &#RRGGBB}. Every format is
- * now normalized to MiniMessage by {@link ColorFormats}, so MiniMessage tags written in the config
- * files (the Polaroid style) render as well as legacy codes still sitting in older configs.
+ * <p>Use this for values read straight from a config file — a boss bar title, an
+ * entity display name, a menu window title. Localized messages do not come
+ * through here: they are built as Components by
+ * {@link studio.polaroid.polaroiddragon.manager.MessageManager}.
  *
- * <p>{@link #parse(String)} keeps returning a legacy {@code §} string because existing call sites
- * feed it to {@code sendMessage(String)}, boss bar titles and entity custom names.
- * New code should prefer {@link #component(String)}.
+ * <p>There is deliberately no legacy {@code §}-string variant. Rendering a
+ * Component down to legacy and reparsing it drops hover and click events and
+ * flattens gradients, which is exactly what {@code LegacyRoundTripTest} pins.
+ * Everything user-facing stays a Component end to end.
  */
 public final class ColorUtil {
 
     private ColorUtil() {}
 
-    /** Any supported color format rendered down to a legacy {@code §} string. */
-    public static String parse(String text) {
-        if (text == null) return "";
-        if (text.isEmpty()) return "";
-        return ColorFormats.toLegacy(ColorFormats.parse(text));
-    }
-
-    /** Any supported color format rendered to an Adventure Component. Preferred for new code. */
+    /** Any supported color format rendered to an Adventure Component. */
     public static Component component(String text) {
         return ColorFormats.parse(text);
-    }
-
-    /** Any supported color format normalized to MiniMessage, without rendering. */
-    public static String normalize(String text) {
-        return ColorFormats.normalize(text);
     }
 }

@@ -7,9 +7,7 @@ import studio.polaroid.polaroiddragon.util.TimeUtil;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
-import org.bukkit.boss.BarColor;
-import org.bukkit.boss.BarStyle;
-import org.bukkit.boss.BossBar;
+import net.kyori.adventure.bossbar.BossBar;
 import org.bukkit.entity.EnderDragon;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -409,16 +407,18 @@ public class DragonManager {
         if (!plugin.getConfig().getBoolean("bossbar.enabled")) return;
         removeBossBar();
 
-        BarColor color = safeBarColor(plugin.getConfig().getString("bossbar.color", "PURPLE"));
-        BarStyle style = safeBarStyle(plugin.getConfig().getString("bossbar.style", "SEGMENTED_10"));
+        BossBar.Color color = safeBarColor(plugin.getConfig().getString("bossbar.color", "PURPLE"));
+        BossBar.Overlay overlay = safeBarOverlay(plugin.getConfig().getString("bossbar.style", "SEGMENTED_10"));
 
         // Read once. This task runs every second for the whole fight, and
         // re-reading plus re-parsing the title each tick was pure overhead.
         final String rawTitle = plugin.getConfig().getString("bossbar.title", "<dark_purple>Ancestral Dragon");
 
-        bossBar = Bukkit.createBossBar(ColorUtil.parse(rawTitle), color, style);
-        bossBar.setVisible(true);
-        Bukkit.getOnlinePlayers().forEach(bossBar::addPlayer);
+        // Adventure's BossBar takes a Component. The legacy Bukkit boss bar took
+        // a String, so the configured gradient was flattened on its way to the
+        // screen — the one place the Polaroid title still lost its styling.
+        bossBar = BossBar.bossBar(ColorUtil.component(rawTitle), 1.0f, color, overlay);
+        Bukkit.getOnlinePlayers().forEach(p -> p.showBossBar(bossBar));
 
         cachedHealth    = dragon.getHealth();
         cachedMaxHealth = dragon.getMaxHealth();
@@ -439,16 +439,16 @@ public class DragonManager {
                 cachedHealth    = health;
                 cachedMaxHealth = maxHealth;
 
-                bossBar.setProgress(maxHealth > 0
-                        ? Math.max(0.0, Math.min(1.0, health / maxHealth))
-                        : 0.0);
+                bossBar.progress(maxHealth > 0
+                        ? (float) Math.max(0.0, Math.min(1.0, health / maxHealth))
+                        : 0.0f);
 
                 String raw = rawTitle
                         .replace("{current}", String.format("%.0f", health))
                         .replace("{max}",     String.format("%.0f", maxHealth));
                 // Only re-parse when the rendered text actually changed.
                 if (!raw.equals(lastRendered)) {
-                    bossBar.setTitle(ColorUtil.parse(raw));
+                    bossBar.name(ColorUtil.component(raw));
                     lastRendered = raw;
                 }
             }
@@ -457,11 +457,15 @@ public class DragonManager {
 
     public void removeBossBar() {
         if (bossBarTask != null) { bossBarTask.cancel(); bossBarTask = null; }
-        if (bossBar != null)     { bossBar.removeAll(); bossBar.setVisible(false); bossBar = null; }
+        if (bossBar != null) {
+            BossBar bar = bossBar;
+            Bukkit.getOnlinePlayers().forEach(p -> p.hideBossBar(bar));
+            bossBar = null;
+        }
     }
 
     public void addPlayerToBossBar(Player player) {
-        if (bossBar != null) bossBar.addPlayer(player);
+        if (bossBar != null) player.showBossBar(bossBar);
     }
 
     // ─────────────────────────────────────────────
@@ -578,7 +582,12 @@ public class DragonManager {
     private Map<String, String> buildEndPlaceholders(List<Map.Entry<UUID, Double>> ranking,
                                                       int topSize, Player killer) {
         Map<String, String> ph = new HashMap<>();
-        ph.put("%killer%", killer != null ? killer.getName() : plugin.getMessageManager().get("general.no-killer"));
+        // These placeholders feed chat templates AND the Discord embed, so the
+        // value has to be a plain string. Rendering to plain text rather than to
+        // a legacy §-string keeps Discord from showing raw formatting codes.
+        ph.put("%killer%", killer != null
+                ? killer.getName()
+                : plugin.getMessageManager().plainText("general.no-killer"));
         for (int i = 1; i <= topSize; i++) {
             if (i <= ranking.size()) {
                 Map.Entry<UUID, Double> e = ranking.get(i - 1);
@@ -636,7 +645,7 @@ public class DragonManager {
         // Telling a player they were paid when the deposit failed is worse than
         // saying nothing; the failure is already logged by EconomyManager.
         if (paid && onlinePlayer != null) {
-            onlinePlayer.sendMessage(plugin.getMessageManager().get("rewards.money-received", Map.of(
+            onlinePlayer.sendMessage(plugin.getMessageManager().component("rewards.money-received", Map.of(
                     "{amount}", economyManager.format(amount)
             )));
         }
@@ -747,11 +756,41 @@ public class DragonManager {
         return Bukkit.getWorld(plugin.getConfig().getString("dragon.world", "world_the_end"));
     }
 
-    private BarColor safeBarColor(String v) {
-        try { return BarColor.valueOf(v); } catch (Exception e) { return BarColor.PURPLE; }
+    private BossBar.Color safeBarColor(String v) {
+        if (v == null) return BossBar.Color.PURPLE;
+        try {
+            return BossBar.Color.valueOf(v.trim().toUpperCase(Locale.ROOT));
+        } catch (IllegalArgumentException e) {
+            plugin.getLogger().warning("Unknown bossbar.color '" + v + "'; using PURPLE.");
+            return BossBar.Color.PURPLE;
+        }
     }
 
-    private BarStyle safeBarStyle(String v) {
-        try { return BarStyle.valueOf(v); } catch (Exception e) { return BarStyle.SEGMENTED_10; }
+    /**
+     * Maps the configured style to an Adventure overlay.
+     *
+     * <p>Existing configs hold Bukkit's names ({@code SOLID}, {@code SEGMENTED_10}),
+     * so those keep working; Adventure's own names are accepted too. Changing the
+     * config would have silently reset every server's boss bar style.
+     */
+    private BossBar.Overlay safeBarOverlay(String v) {
+        if (v == null) return BossBar.Overlay.NOTCHED_10;
+
+        String value = v.trim().toUpperCase(Locale.ROOT);
+        String adventureName = switch (value) {
+            case "SOLID"         -> "PROGRESS";
+            case "SEGMENTED_6"   -> "NOTCHED_6";
+            case "SEGMENTED_10"  -> "NOTCHED_10";
+            case "SEGMENTED_12"  -> "NOTCHED_12";
+            case "SEGMENTED_20"  -> "NOTCHED_20";
+            default              -> value;
+        };
+
+        try {
+            return BossBar.Overlay.valueOf(adventureName);
+        } catch (IllegalArgumentException e) {
+            plugin.getLogger().warning("Unknown bossbar.style '" + v + "'; using SEGMENTED_10.");
+            return BossBar.Overlay.NOTCHED_10;
+        }
     }
 }

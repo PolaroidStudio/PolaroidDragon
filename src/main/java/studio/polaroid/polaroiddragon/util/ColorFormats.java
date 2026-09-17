@@ -2,7 +2,6 @@ package studio.polaroid.polaroiddragon.util;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
-import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 
 import java.util.regex.Pattern;
 
@@ -31,14 +30,6 @@ public final class ColorFormats {
     private static final Pattern AMP_CODE = Pattern.compile("&([0-9a-fk-orA-FK-OR])");
     // #RRGGBB without delimiters — excludes those preceded by &, §, <, # or :
     private static final Pattern BARE_HEX = Pattern.compile("(?<![&§<#:])#([0-9a-fA-F]{6})(?![>0-9a-fA-F])");
-    // Color validation: hex or a known MiniMessage color tag
-    private static final Pattern VALID_COLOR = Pattern.compile(
-            "^(<#[0-9a-fA-F]{6}>|#[0-9a-fA-F]{6}|&#[0-9a-fA-F]{6}|" +
-            "§x(§[0-9a-fA-F]){6}|&[0-9a-fA-FK-OR]|§[0-9a-fA-FK-OR]|" +
-            "<(black|dark_blue|dark_green|dark_aqua|dark_red|dark_purple|gold|gray|" +
-            "dark_gray|blue|green|aqua|red|light_purple|yellow|white)>)$",
-            Pattern.CASE_INSENSITIVE);
-
     private ColorFormats() {}
 
     /** Any color format to its MiniMessage equivalent. Already-valid MiniMessage is returned unchanged. */
@@ -51,17 +42,6 @@ public final class ColorFormats {
     public static Component parse(String text) {
         if (text == null || text.isBlank()) return Component.empty();
         return MM.deserialize(normalize(text));
-    }
-
-    /** Serializes a Component back to legacy §-codes. */
-    public static String toLegacy(Component component) {
-        return LegacyComponentSerializer.legacySection().serialize(component);
-    }
-
-    /** True if the whole string is a valid color in any supported format. */
-    public static boolean isValidColor(String input) {
-        if (input == null || input.isBlank()) return false;
-        return VALID_COLOR.matcher(input.trim()).matches();
     }
 
     /** Converts §-codes / &amp;-codes / bare hex to MiniMessage tags; leaves existing tags intact. */
