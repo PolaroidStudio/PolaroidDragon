@@ -13,19 +13,24 @@ import java.util.Map;
 public class ScheduleManager {
 
     private final PolaroidDragon plugin;
-    private ZonedDateTime nextEventTime;
+    // Read from PlaceholderAPI, which runs off the main thread.
+    private volatile ZonedDateTime nextEventTime;
 
     private static final DateTimeFormatter TIME_FMT = DateTimeFormatter.ofPattern("HH:mm");
 
-    // Traducción de DayOfWeek a español
-    private static final Map<DayOfWeek, String> DAY_NAMES_ES = Map.of(
-            DayOfWeek.MONDAY,    "Lunes",
-            DayOfWeek.TUESDAY,   "Martes",
-            DayOfWeek.WEDNESDAY, "Miércoles",
-            DayOfWeek.THURSDAY,  "Jueves",
-            DayOfWeek.FRIDAY,    "Viernes",
-            DayOfWeek.SATURDAY,  "Sábado",
-            DayOfWeek.SUNDAY,    "Domingo"
+    /**
+     * Fallback used only when a language file has no {@code days} section.
+     * Day names are localized like every other user-facing string; hardcoding
+     * Spanish here meant an English server showed "Sábado" in its countdown.
+     */
+    private static final Map<DayOfWeek, String> DAY_NAMES_FALLBACK = Map.of(
+            DayOfWeek.MONDAY,    "Monday",
+            DayOfWeek.TUESDAY,   "Tuesday",
+            DayOfWeek.WEDNESDAY, "Wednesday",
+            DayOfWeek.THURSDAY,  "Thursday",
+            DayOfWeek.FRIDAY,    "Friday",
+            DayOfWeek.SATURDAY,  "Saturday",
+            DayOfWeek.SUNDAY,    "Sunday"
     );
 
     public ScheduleManager(PolaroidDragon plugin) {
@@ -66,25 +71,14 @@ public class ScheduleManager {
      * en la semana actual (puede estar en el pasado; el llamador suma 7 días si hace falta).
      */
     private ZonedDateTime parseEntry(ZonedDateTime base, String entry) {
-        try {
-            String[] parts = entry.trim().split("\\s+");
-            if (parts.length != 2) throw new IllegalArgumentException("Formato inválido");
+        ScheduleEntryParser.Result result = ScheduleEntryParser.parse(base, entry);
+        if (result.isValid()) return result.value();
 
-            DayOfWeek day = DayOfWeek.valueOf(parts[0].toUpperCase());
-            String[] timeParts = parts[1].split(":");
-            int hour   = Integer.parseInt(timeParts[0]);
-            int minute = Integer.parseInt(timeParts[1]);
-
-            // Ajustar al día de la semana correcto dentro de la semana actual
-            ZonedDateTime result = base.with(java.time.temporal.TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
-                    .with(day)
-                    .withHour(hour).withMinute(minute).withSecond(0).withNano(0);
-
-            return result;
-        } catch (Exception e) {
-            plugin.getLogger().warning("Horario inválido: '" + entry + "'. Formato correcto: FRIDAY 20:00");
-            return null;
-        }
+        // Name the actual problem. A single generic "invalid format" line left
+        // the operator guessing between a bad day, a bad time and a bad range.
+        plugin.getLogger().warning("Invalid schedule entry '" + entry + "': " + result.error()
+                + ". Expected format: FRIDAY 20:00");
+        return null;
     }
 
     // ─────────────────────────────────────────────
@@ -108,10 +102,15 @@ public class ScheduleManager {
         return nextEventTime != null ? nextEventTime.format(TIME_FMT) : "-";
     }
 
-    /** Día del próximo evento en español. Ej: "Sábado" */
+    /** Localized day of the next event. E.g. "Saturday". */
     public String getNextDayString() {
         if (nextEventTime == null) return "-";
-        return DAY_NAMES_ES.getOrDefault(nextEventTime.getDayOfWeek(), nextEventTime.getDayOfWeek().name());
+        DayOfWeek day = nextEventTime.getDayOfWeek();
+
+        String localized = plugin.getMessageManager().getDayName(day.name());
+        if (localized != null && !localized.isBlank()) return localized;
+
+        return DAY_NAMES_FALLBACK.getOrDefault(day, day.name());
     }
 
     /** Día y hora del próximo evento. Ej: "Sábado 18:00" */
@@ -128,7 +127,7 @@ public class ScheduleManager {
         try {
             return ZoneId.of(plugin.getConfig().getString("event.timezone", "Europe/Madrid"));
         } catch (Exception e) {
-            plugin.getLogger().warning("Zona horaria inválida, usando Europe/Madrid.");
+            plugin.getLogger().warning("Invalid event.timezone; falling back to Europe/Madrid.");
             return ZoneId.of("Europe/Madrid");
         }
     }

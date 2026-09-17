@@ -65,6 +65,12 @@ public class DragonManager {
 
     private volatile int countdownSeconds = 0;
 
+    /** Survives a restart mid-fight: the damage ledger and the event deadline. */
+    private final EventStateStore eventStateStore;
+
+    /** Absolute event deadline, epoch millis. 0 when no timeout is configured. */
+    private volatile long eventDeadlineMillis = 0L;
+
     // Dragon health snapshot, refreshed by the boss bar task. Placeholders read
     // this instead of touching the world entity list from an async thread.
     private volatile double cachedHealth    = 0.0;
@@ -79,6 +85,7 @@ public class DragonManager {
         this.discordWebhookManager = discordWebhookManager;
         this.damageTracker = new DamageTracker();
         this.scheduleManager = new ScheduleManager(plugin);
+        this.eventStateStore = new EventStateStore(plugin);
     }
 
     // ─────────────────────────────────────────────
@@ -101,12 +108,46 @@ public class DragonManager {
             if (!isTaggedEventDragon(dragon)) continue;
             activeDragonUUID = dragon.getUniqueId();
             eventActive = true;
+            endingEvent.set(false);
+
+            int restored = restoreEventState(dragon.getUniqueId());
+
             setupBossBar(dragon);
-            scheduleTimeout();
             plugin.getLogger().info("Tagged event dragon found after restart (UUID: "
-                    + activeDragonUUID + "). Event resumed.");
+                    + activeDragonUUID + "). Event resumed with "
+                    + restored + " participant(s) restored.");
             return;
         }
+
+        // No dragon to adopt, so a leftover snapshot describes an event that is
+        // already gone.
+        eventStateStore.clear();
+    }
+
+    /**
+     * Rebuilds the damage ledger and the remaining deadline after a restart.
+     *
+     * @return how many participants were restored
+     */
+    private int restoreEventState(UUID dragonUuid) {
+        EventStateStore.Snapshot snapshot = eventStateStore.load();
+
+        if (snapshot == null || !dragonUuid.equals(snapshot.dragonUuid)) {
+            // Snapshot belongs to a different event; start this one clean and
+            // arm a fresh timeout.
+            damageTracker.reset();
+            scheduleTimeout();
+            return 0;
+        }
+
+        for (Map.Entry<UUID, Double> entry : snapshot.damage.entrySet()) {
+            damageTracker.restore(entry.getKey(), snapshot.names.get(entry.getKey()), entry.getValue());
+        }
+
+        // Resume the original deadline instead of arming a full new timeout,
+        // which would let a restart extend the event indefinitely.
+        resumeTimeout(snapshot.deadlineEpochMillis);
+        return snapshot.damage.size();
     }
 
     /** True when the entity carries the persistent tag written by {@link #spawnDragon()}. */
@@ -282,11 +323,22 @@ public class DragonManager {
         // Re-arm the payout guard for this new event.
         endingEvent.set(false);
         damageTracker.reset();
+        eventStateStore.clear();
 
         setupBossBar(dragon);
         scheduleTimeout();
+        // Persist the deadline now, so a restart resumes the remaining time
+        // instead of arming a fresh full timeout.
+        persistEventState();
         NotificationSender.send(plugin.getConfig(), "phases.spawn.notification", new HashMap<>());
         discordWebhookManager.sendSpawn();
+    }
+
+    /** Writes the current ledger and deadline so a restart can resume the fight. */
+    public void persistEventState() {
+        if (!eventActive || activeDragonUUID == null) return;
+        eventStateStore.save(activeDragonUUID, damageTracker.snapshotDamage(),
+                damageTracker.snapshotNames(), eventDeadlineMillis);
     }
 
     // ─────────────────────────────────────────────
@@ -309,17 +361,44 @@ public class DragonManager {
             timeoutMinutes = configured;
         }
 
+        long durationMillis = (long) timeoutMinutes * 60_000L;
+        eventDeadlineMillis = System.currentTimeMillis() + durationMillis;
+        armTimeoutTask((long) timeoutMinutes * 60 * 20);
+    }
+
+    /**
+     * Re-arms the timeout for the remaining time of a resumed event.
+     *
+     * <p>A deadline already in the past ends the event on the next tick rather
+     * than being silently dropped.
+     */
+    private void resumeTimeout(long deadlineEpochMillis) {
+        cancelTimeout();
+        if (deadlineEpochMillis <= 0L) {
+            // The interrupted event had no timeout configured.
+            eventDeadlineMillis = 0L;
+            return;
+        }
+
+        eventDeadlineMillis = deadlineEpochMillis;
+        long remainingMillis = deadlineEpochMillis - System.currentTimeMillis();
+        long remainingTicks = Math.max(1L, remainingMillis / 50L);
+        plugin.getLogger().info("Resuming the event deadline; "
+                + Math.max(0L, remainingMillis / 1000L) + "s remaining.");
+        armTimeoutTask(remainingTicks);
+    }
+
+    private void armTimeoutTask(long delayTicks) {
         timeoutTask = new BukkitRunnable() {
             @Override
             public void run() {
                 if (!eventActive) return;
-                plugin.getLogger().info("Dragon timeout reached (" + timeoutMinutes
-                        + " min). Processing rewards.");
+                plugin.getLogger().info("Dragon timeout reached. Processing rewards.");
                 EnderDragon dragon = getActiveDragon();
                 handleEventEnd(dragon, null, true);
                 if (dragon != null) dragon.remove();
             }
-        }.runTaskLater(plugin, (long) timeoutMinutes * 60 * 20);
+        }.runTaskLater(plugin, delayTicks);
     }
 
     // ─────────────────────────────────────────────
@@ -410,8 +489,11 @@ public class DragonManager {
 
         eventActive      = false;
         activeDragonUUID = null;
+        eventDeadlineMillis = 0L;
         cancelTimeout();
         removeBossBar();
+        // The event is over; a leftover snapshot would be adopted on restart.
+        eventStateStore.clear();
 
         List<Map.Entry<UUID, Double>> ranking = damageTracker.getRanking();
         int topSize = plugin.getConfig().getInt("event.top-size", 5);
@@ -595,8 +677,10 @@ public class DragonManager {
         countdownActive  = false;
         countdownSeconds = 0;
         activeDragonUUID = null;
+        eventDeadlineMillis = 0L;
         // A stopped event pays nothing, so the next event starts from a clean guard.
         endingEvent.set(false);
+        eventStateStore.clear();
 
         if (dragon != null) {
             dragon.remove();
@@ -614,6 +698,9 @@ public class DragonManager {
      * startup to resume the event.
      */
     public void cancelAll() {
+        // Capture the ledger before the tasks die: the dragon entity survives
+        // the restart, so the damage accumulated so far must survive with it.
+        persistEventState();
         removeBossBar();
         cancelCountdown();
         cancelTimeout();

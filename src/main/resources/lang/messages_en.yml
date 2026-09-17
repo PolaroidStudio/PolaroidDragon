@@ -149,6 +149,16 @@ hall-of-fame:
   my-stats: "<#f2c42f>▸ <#E9FDFB>Your stats: <#289bd0>{damage} dmg <#315a7a>| <#6f6085>{events} events"
 
 # Medals shown next to each ranking position.
+# Weekday names, used by the next-event countdown.
+days:
+  MONDAY: "Monday"
+  TUESDAY: "Tuesday"
+  WEDNESDAY: "Wednesday"
+  THURSDAY: "Thursday"
+  FRIDAY: "Friday"
+  SATURDAY: "Saturday"
+  SUNDAY: "Sunday"
+
 medals:
   positions:
     - "<#f2c42f><b>1sᴛ"

@@ -188,6 +188,16 @@ public class MessageManager {
         return out;
     }
 
+    /**
+     * Localized weekday name, or null when the language file has no entry.
+     *
+     * <p>Returns null rather than the raw key so the caller can fall back to a
+     * readable English name instead of printing {@code days.SATURDAY}.
+     */
+    public String getDayName(String dayOfWeekName) {
+        return messages.getString("days." + dayOfWeekName);
+    }
+
     /** Medal for a ranking position (1 = first, 2 = second, ...). */
     public String getMedal(int position) {
         return ColorFormats.toLegacy(medalComponent(position));

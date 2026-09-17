@@ -8,8 +8,9 @@ import studio.polaroid.polaroiddragon.manager.StatsManager;
 import studio.polaroid.polaroiddragon.util.ColorUtil;
 import studio.polaroid.polaroiddragon.util.TimeUtil;
 import org.bukkit.attribute.Attribute;
+import org.bukkit.attribute.AttributeInstance;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.EnderDragon;
@@ -20,8 +21,10 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 public class DragonMenu {
@@ -31,6 +34,9 @@ public class DragonMenu {
     private final MessageManager messages;
     private final MenuConfig menuConfig;
     private final MenuItemMarker marker;
+
+    /** Slots already reported as out of range, so a reopened menu does not flood the console. */
+    private final Set<Integer> warnedSlots = new HashSet<>();
 
     public DragonMenu(DragonManager dragonManager, StatsManager statsManager,
                       MessageManager messages, MenuConfig menuConfig, MenuItemMarker marker) {
@@ -110,7 +116,10 @@ public class DragonMenu {
             EnderDragon dragon = dragonManager.getActiveDragon();
             if (dragon != null) {
                 double hp = dragon.getHealth();
-                double maxHp = dragon.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue();
+                // The attribute instance is nullable per the API contract, and a health bar
+                // is not worth an NPE that would take the whole menu down with it.
+                AttributeInstance maxHealth = dragon.getAttribute(Attribute.GENERIC_MAX_HEALTH);
+                double maxHp = maxHealth != null ? maxHealth.getValue() : dragon.getMaxHealth();
                 lore.add(buildHealthBar(hp, maxHp));
                 lore.add(messages.get("info.hp", Map.of(
                         "{current}", "%.0f".formatted(hp),
@@ -135,7 +144,7 @@ public class DragonMenu {
         }
 
         Material mat = anyActive ? menuConfig.getInfoActiveMaterial() : menuConfig.getInfoInactiveMaterial();
-        inv.setItem(menuConfig.getInfoStatusSlot(), simpleItem(mat, name, lore.toArray(new String[0])));
+        safeSet(inv, menuConfig.getInfoStatusSlot(), simpleItem(mat, name, lore.toArray(new String[0])));
     }
 
     /** Barra de 20 caracteres: &a (vida actual) + &7 (vida faltante). */
@@ -153,7 +162,7 @@ public class DragonMenu {
 
     private void buildTopEvent(Inventory inv, Player viewer) {
         if (!dragonManager.isEventActive()) {
-            inv.setItem(menuConfig.getTopEventEmptySlot(),
+            safeSet(inv, menuConfig.getTopEventEmptySlot(),
                     simpleItem(menuConfig.getTopEventEmptyMaterial(), messages.get("top.no-event-active")));
             return;
         }
@@ -162,7 +171,7 @@ public class DragonMenu {
         List<Map.Entry<UUID, Double>> ranking = tracker.getRanking();
 
         if (ranking.isEmpty()) {
-            inv.setItem(menuConfig.getTopEventEmptySlot(),
+            safeSet(inv, menuConfig.getTopEventEmptySlot(),
                     simpleItem(menuConfig.getTopEventEmptyMaterial(), messages.get("top.no-damage-yet")));
             return;
         }
@@ -174,7 +183,7 @@ public class DragonMenu {
             String medal = messages.getMedal(i + 1);
             String playerName = tracker.getPlayerName(entry.getKey());
 
-            inv.setItem(rankingSlots.get(i), playerHead(entry.getKey(), medal + " " + playerName,
+            safeSet(inv, rankingSlots.get(i), playerHead(entry.getKey(), medal + " " + playerName,
                     messages.get("top.entry", Map.of(
                             "{medal}", medal,
                             "{player}", playerName,
@@ -188,7 +197,7 @@ public class DragonMenu {
             for (int i = 0; i < ranking.size(); i++) {
                 if (ranking.get(i).getKey().equals(viewer.getUniqueId())) { myRank = i + 1; break; }
             }
-            inv.setItem(menuConfig.getTopEventMyPositionSlot(),
+            safeSet(inv, menuConfig.getTopEventMyPositionSlot(),
                     playerHead(viewer.getUniqueId(), viewer.getName(),
                             messages.get("top.my-position", Map.of(
                                     "{rank}", String.valueOf(myRank),
@@ -205,7 +214,7 @@ public class DragonMenu {
         List<StatsManager.PlayerStats> top = statsManager.getTopByDamage(5);
 
         if (top.isEmpty()) {
-            inv.setItem(menuConfig.getHallOfFameEmptySlot(),
+            safeSet(inv, menuConfig.getHallOfFameEmptySlot(),
                     simpleItem(menuConfig.getHallOfFameEmptyMaterial(), messages.get("hall-of-fame.no-stats")));
             return;
         }
@@ -216,7 +225,7 @@ public class DragonMenu {
             StatsManager.PlayerStats ps = top.get(i);
             String medal = messages.getMedal(i + 1);
 
-            inv.setItem(rankingSlots.get(i), playerHead(ps.getUuid(), medal + " " + ps.getName(),
+            safeSet(inv, rankingSlots.get(i), playerHead(ps.getUuid(), medal + " " + ps.getName(),
                     messages.get("hall-of-fame.entry", Map.of(
                             "{medal}", medal,
                             "{player}", ps.getName(),
@@ -227,7 +236,7 @@ public class DragonMenu {
 
         StatsManager.PlayerStats myStats = statsManager.getPlayerStats(viewer.getUniqueId());
         if (myStats != null) {
-            inv.setItem(menuConfig.getHallOfFameMyPositionSlot(),
+            safeSet(inv, menuConfig.getHallOfFameMyPositionSlot(),
                     playerHead(viewer.getUniqueId(), viewer.getName(),
                             messages.get("hall-of-fame.my-stats", Map.of(
                                     "{damage}", "%,.0f".formatted(myStats.getTotalDamage()),
@@ -242,19 +251,19 @@ public class DragonMenu {
 
     private void addNavigation(Inventory inv, DragonMenuHolder.View view) {
         switch (view) {
-            case INFO -> inv.setItem(
+            case INFO -> safeSet(inv,
                     menuConfig.getInfoNavToTopSlot(),
                     navItem(menuConfig.getInfoNavToTopMaterial(), "gui.nav-top"));
             case TOP_EVENT -> {
-                inv.setItem(menuConfig.getTopEventNavToHallSlot(),
+                safeSet(inv, menuConfig.getTopEventNavToHallSlot(),
                         navItem(menuConfig.getTopEventNavToHallMaterial(), "gui.nav-hall-of-fame"));
-                inv.setItem(menuConfig.getTopEventNavToInfoSlot(),
+                safeSet(inv, menuConfig.getTopEventNavToInfoSlot(),
                         navItem(menuConfig.getTopEventNavToInfoMaterial(), "gui.nav-info"));
             }
             case HALL_OF_FAME -> {
-                inv.setItem(menuConfig.getHallOfFameNavToTopSlot(),
+                safeSet(inv, menuConfig.getHallOfFameNavToTopSlot(),
                         navItem(menuConfig.getHallOfFameNavToTopMaterial(), "gui.nav-top"));
-                inv.setItem(menuConfig.getHallOfFameNavToInfoSlot(),
+                safeSet(inv, menuConfig.getHallOfFameNavToInfoSlot(),
                         navItem(menuConfig.getHallOfFameNavToInfoMaterial(), "gui.nav-info"));
             }
         }
@@ -303,8 +312,12 @@ public class DragonMenu {
             // An empty tooltip box trailing the cursor over every filler pane
             // looks broken; Paper 1.20.5+ can suppress it outright.
             ItemMeta fillerMeta = filler.getItemMeta();
-            fillerMeta.setHideTooltip(true);
-            filler.setItemMeta(fillerMeta);
+            // AIR is an accepted filler material in menus.yml and carries no meta at all,
+            // so the tooltip request is simply dropped instead of throwing mid-build.
+            if (fillerMeta != null) {
+                fillerMeta.setHideTooltip(true);
+                filler.setItemMeta(fillerMeta);
+            }
         }
         for (int i = 0; i < inv.getSize(); i++) {
             if (inv.getItem(i) == null) {
@@ -319,33 +332,64 @@ public class DragonMenu {
     //  HELPERS
     // ─────────────────────────────────────────────
 
+    /**
+     * menus.yml slots are operator-controlled and were never validated, so a slot beyond the
+     * view size threw ArrayIndexOutOfBoundsException out of build(), which propagates into the
+     * command handler and the click listener. A misconfigured slot now costs one item, not the menu.
+     */
+    private void safeSet(Inventory inv, int slot, ItemStack item) {
+        if (slot < 0 || slot >= inv.getSize()) {
+            if (warnedSlots.add(slot)) {
+                Bukkit.getLogger().warning("[PolaroidDragon] menus.yml slot " + slot
+                        + " is outside the inventory size " + inv.getSize() + "; the item was skipped.");
+            }
+            return;
+        }
+        safeSet(inv, slot, item);
+    }
+
     private ItemStack simpleItem(Material material, String name, String... loreLines) {
         ItemStack item = new ItemStack(material);
         ItemMeta meta = item.getItemMeta();
-        meta.displayName(colorize(name));
-        if (loreLines.length > 0) {
-            List<Component> lore = new ArrayList<>();
-            for (String line : loreLines) lore.add(colorize(line));
-            meta.lore(lore);
+        // AIR is an accepted material in menus.yml and has no meta; the item still has to
+        // come back placeable so the caller's slot logic stays unchanged.
+        if (meta != null) {
+            meta.displayName(plain(colorize(name)));
+            if (loreLines.length > 0) {
+                List<Component> lore = new ArrayList<>();
+                for (String line : loreLines) lore.add(plain(colorize(line)));
+                meta.lore(lore);
+            }
+            item.setItemMeta(meta);
         }
-        item.setItemMeta(meta);
         // Single render choke point: every chrome item leaves here marked.
         return marker.mark(item);
     }
 
     private ItemStack playerHead(UUID uuid, String name, String... loreLines) {
         ItemStack item = new ItemStack(Material.PLAYER_HEAD);
-        SkullMeta meta = (SkullMeta) item.getItemMeta();
-        meta.setOwningPlayer(Bukkit.getOfflinePlayer(uuid));
-        meta.displayName(colorize(name));
-        if (loreLines.length > 0) {
-            List<Component> lore = new ArrayList<>();
-            for (String line : loreLines) lore.add(colorize(line));
-            meta.lore(lore);
+        // An unconditional cast would turn any future meta change into a ClassCastException
+        // thrown out of build(); the head without its skin is the acceptable degradation.
+        if (item.getItemMeta() instanceof SkullMeta meta) {
+            meta.setOwningPlayer(Bukkit.getOfflinePlayer(uuid));
+            meta.displayName(plain(colorize(name)));
+            if (loreLines.length > 0) {
+                List<Component> lore = new ArrayList<>();
+                for (String line : loreLines) lore.add(plain(colorize(line)));
+                meta.lore(lore);
+            }
+            item.setItemMeta(meta);
         }
-        item.setItemMeta(meta);
         // Single render choke point: every chrome item leaves here marked.
         return marker.mark(item);
+    }
+
+    /**
+     * Item names and lore inherit vanilla's purple italic unless a decoration is set
+     * explicitly, which overrides whatever menus.yml configured.
+     */
+    private static Component plain(Component component) {
+        return component.decoration(TextDecoration.ITALIC, false);
     }
 
     private Component colorize(String text) {
