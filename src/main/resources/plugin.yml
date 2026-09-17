@@ -12,9 +12,13 @@ commands:
   polaroiddragon:
     description: Main PolaroidDragon command
     aliases: [ pdragon ]
+    permission: polaroiddragon.use
     usage: /polaroiddragon <start|spawn|stop|top|info|placeholders|reload>
 
 permissions:
+  polaroiddragon.use:
+    description: Allows using the base command and its informational subcommands
+    default: true
   polaroiddragon.admin:
     description: Full access to PolaroidDragon admin commands
     default: op

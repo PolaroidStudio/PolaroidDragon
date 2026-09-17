@@ -42,14 +42,17 @@ public class DragonPlaceholder extends PlaceholderExpansion {
             case "countdown":
                 return TimeUtil.format(dragonManager.getCountdownSeconds());
 
-            case "hp": {
-                EnderDragon d = dragonManager.getActiveDragon();
-                return d != null ? String.format("%.0f", d.getHealth()) : "0";
-            }
-            case "hp_max": {
-                EnderDragon d = dragonManager.getActiveDragon();
-                return d != null ? String.format("%.0f", d.getMaxHealth()) : "0";
-            }
+            // PlaceholderAPI is routinely evaluated off the main thread by
+            // scoreboard and tab plugins, so these read the cached snapshot the
+            // boss bar task publishes. Touching the live entity here meant
+            // iterating the world entity list from an async thread.
+            case "hp":
+                return dragonManager.isEventActive()
+                        ? String.format("%.0f", dragonManager.getCachedHealth()) : "0";
+
+            case "hp_max":
+                return dragonManager.isEventActive()
+                        ? String.format("%.0f", dragonManager.getCachedMaxHealth()) : "0";
             case "participants":
                 return String.valueOf(tracker.getParticipantCount());
 

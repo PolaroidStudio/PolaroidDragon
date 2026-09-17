@@ -14,14 +14,26 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.EnderDragon;
 import org.bukkit.entity.Player;
+import org.bukkit.util.StringUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 
 public class DragonCommand implements CommandExecutor, TabCompleter {
+
+    /** Base node for the informational subcommands. Declared default: true. */
+    private static final String USE_PERMISSION = "polaroiddragon.use";
+
+    /**
+     * Subcommand argument selecting the current event ranking instead of the
+     * Hall of Fame. Both spellings are accepted: the plugin ships an English
+     * locale, so an English operator must not have to type a Spanish word.
+     */
+    private static final List<String> EVENT_SCOPE_ALIASES = List.of("event", "evento");
 
     private final PolaroidDragon plugin;
     private final DragonManager dragonManager;
@@ -43,7 +55,9 @@ public class DragonCommand implements CommandExecutor, TabCompleter {
 
         if (args.length == 0) { sendHelp(sender); return true; }
 
-        switch (args[0].toLowerCase()) {
+        // Locale.ROOT: under a Turkish locale "INFO".toLowerCase() yields "ınfo"
+        // and every subcommand silently stops matching.
+        switch (args[0].toLowerCase(Locale.ROOT)) {
 
             case "start" -> {
                 if (!sender.hasPermission("polaroiddragon.admin.start")) { noPerms(sender); return true; }
@@ -79,12 +93,14 @@ public class DragonCommand implements CommandExecutor, TabCompleter {
             }
 
             case "top" -> {
+                if (!sender.hasPermission(USE_PERMISSION)) { noPerms(sender); return true; }
+                boolean eventScope = args.length >= 2 && isEventScope(args[1]);
                 if (sender instanceof Player player) {
-                    DragonMenuHolder.View view = (args.length >= 2 && args[1].equalsIgnoreCase("evento"))
+                    DragonMenuHolder.View view = eventScope
                             ? DragonMenuHolder.View.TOP_EVENT
                             : DragonMenuHolder.View.HALL_OF_FAME;
                     player.openInventory(dragonMenu.build(view, player));
-                } else if (args.length >= 2 && args[1].equalsIgnoreCase("evento")) {
+                } else if (eventScope) {
                     sendCurrentEventTop(sender);
                 } else {
                     sendHallOfFame(sender);
@@ -92,6 +108,7 @@ public class DragonCommand implements CommandExecutor, TabCompleter {
             }
 
             case "info" -> {
+                if (!sender.hasPermission(USE_PERMISSION)) { noPerms(sender); return true; }
                 if (sender instanceof Player player) {
                     player.openInventory(dragonMenu.build(DragonMenuHolder.View.INFO, player));
                 } else {
@@ -99,7 +116,10 @@ public class DragonCommand implements CommandExecutor, TabCompleter {
                 }
             }
 
-            case "placeholders" -> sendPlaceholders(sender);
+            case "placeholders" -> {
+                if (!sender.hasPermission(USE_PERMISSION)) { noPerms(sender); return true; }
+                sendPlaceholders(sender);
+            }
 
             case "reload" -> {
                 if (!sender.hasPermission("polaroiddragon.admin.reload")) { noPerms(sender); return true; }
@@ -244,20 +264,35 @@ public class DragonCommand implements CommandExecutor, TabCompleter {
         messages.getList("help.lines").forEach(sender::sendMessage);
     }
 
+    /** True when the argument selects the current event ranking. */
+    private static boolean isEventScope(String arg) {
+        return EVENT_SCOPE_ALIASES.contains(arg.toLowerCase(Locale.ROOT));
+    }
+
     @Override
     public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command,
                                       @NotNull String label, @NotNull String[] args) {
         if (args.length == 1) {
-            List<String> options = new ArrayList<>(List.of("top", "info", "placeholders"));
+            List<String> options = new ArrayList<>();
+            if (sender.hasPermission(USE_PERMISSION)) {
+                options.addAll(List.of("top", "info", "placeholders"));
+            }
             if (sender.hasPermission("polaroiddragon.admin.start")) options.add("start");
             if (sender.hasPermission("polaroiddragon.admin.spawn")) options.add("spawn");
             if (sender.hasPermission("polaroiddragon.admin.stop")) options.add("stop");
             if (sender.hasPermission("polaroiddragon.admin.reload")) options.add("reload");
-            return options;
+            // Bukkit does not prefix-filter for an overridden completer, so
+            // "/pd s<TAB>" would otherwise offer the whole list.
+            return filterPrefix(options, args[0]);
         }
-        if (args.length == 2 && args[0].equalsIgnoreCase("top"))
-            return List.of("evento");
+        if (args.length == 2 && args[0].equalsIgnoreCase("top") && sender.hasPermission(USE_PERMISSION)) {
+            return filterPrefix(EVENT_SCOPE_ALIASES, args[1]);
+        }
         return List.of();
+    }
+
+    private static List<String> filterPrefix(List<String> options, String prefix) {
+        return StringUtil.copyPartialMatches(prefix, options, new ArrayList<>());
     }
 
     private void noPerms(CommandSender sender) { sender.sendMessage(messages.get("general.no-permission")); }

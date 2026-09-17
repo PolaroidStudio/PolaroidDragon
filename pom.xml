@@ -50,6 +50,18 @@
             <scope>provided</scope>
         </dependency>
         <!--
+            Used by DiscordWebhookManager. The server bundles gson, so it stays
+            provided and is never shaded — but it must be declared: relying on
+            paper-api leaking it transitively means a Paper bump can silently
+            break this build.
+        -->
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>2.10.1</version>
+            <scope>provided</scope>
+        </dependency>
+        <!--
             Connection pool. Shaded rather than fetched through a Paper
             PluginLoader because this project builds with maven-shade-plugin;
             see the storage notes in data.yml.
